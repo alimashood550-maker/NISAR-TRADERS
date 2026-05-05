@@ -1248,10 +1248,7 @@ function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties
         <button className="btn-primary" onClick={() => setShowAddParty(!showAddParty)}><Plus size={18}/> Add Party</button>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800 space-y-1">
-        <p><strong>Purchase/Sale on Credit:</strong> Amount goes to <strong className="text-rose-600">Unpaid</strong> (you owe them) or <strong className="text-amber-600">Receivable</strong> (they owe you).</p>
-        <p><strong>Clear Payment:</strong> Settles your <strong className="text-rose-600">Unpaid</strong> debt. <strong>Clear Receivable:</strong> Collects money <strong className="text-amber-600">they owe you</strong>.</p>
-      </div>
+
 
       {showAddParty && (
         <div className="card border-blue-200 shadow-lg shadow-blue-500/10 animate-in fade-in zoom-in-95">
