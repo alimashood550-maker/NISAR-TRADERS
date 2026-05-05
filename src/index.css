@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-rose-500: #f43f5e;
+  --color-rose-600: #e11d48;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+}
+
+@layer base {
+  body {
+    @apply bg-zinc-50 text-zinc-900 antialiased;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-zinc-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
+  }
+  .btn-primary {
+    @apply px-4 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 active:bg-blue-800 transition-all flex items-center justify-center gap-2;
+  }
+  .btn-success {
+    @apply px-4 py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 active:bg-emerald-700 transition-all flex items-center justify-center gap-2;
+  }
+  .card {
+    @apply bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-zinc-100;
+  }
+}
