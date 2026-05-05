@@ -20,15 +20,12 @@ import {
   CheckCircle2,
   X,
   Trash2,
-  ArrowRightLeft,
   History,
   Filter,
   CalendarDays,
-  ReceiptReturn,
   BadgeIndianRupee,
   Hammer,
-  RotateCcw,
-  Wrench
+  RotateCcw
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import Barcode from 'react-barcode';
