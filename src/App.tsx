@@ -1468,8 +1468,7 @@ function ReportsModule({ parties, banks, inventoryItems, expenses }: any) {
   const totalBankBalances = banks.reduce((acc: number, b: any) => acc + b.balance, 0);
   const totalExpenses = expenses.reduce((acc: number, e: any) => acc + e.amount, 0);
 
-  return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+  return <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-end mb-6">
         <div>
           <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Business Reports</h2>
@@ -1542,8 +1541,7 @@ function ReportsModule({ parties, banks, inventoryItems, expenses }: any) {
           </tbody>
         </table>
       </div>
-    </div>
-  );
+    </div>;
 }
 
 // ------------------------------------------
