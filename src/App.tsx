@@ -610,12 +610,12 @@ function ReturnsEntryModal({ onClose, inventoryItems, returnsInventory, setRetur
 function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, onExpenseClick, onReturnClick, logTransaction, setScrapInventory }: { banks: any[], inventoryItems: any[], setActiveTab: (tab: TabType) => void, onPurchaseClick: () => void, onExpenseClick: () => void, onReturnClick: () => void, logTransaction: any, setScrapInventory: any }) {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Command Center</h2>
-          <p className="text-zinc-500 mt-1">Overview of today's business activity.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Command Center</h2>
+          <p className="text-zinc-500 mt-1 text-sm md:text-base">Overview of today's business activity.</p>
         </div>
-        <div className="flex gap-3 flex-wrap justify-end">
+        <div className="flex gap-2 flex-wrap justify-start md:justify-end w-full md:w-auto">
           <button className="btn-primary" onClick={() => document.getElementById('sales-engine')?.scrollIntoView({ behavior: 'smooth' })}>
             <Plus size={18}/> Add Sale
           </button>
@@ -646,7 +646,7 @@ function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, o
       </div>
 
       {/* STATS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard title="Today's Sales" amount="Rs. 45,200" icon={<TrendingUp size={24} className="text-emerald-500" />} trend="+12.5%" />
         <StatCard title="Cash Received" amount="Rs. 32,000" icon={<Wallet size={24} className="text-blue-500" />} />
         <StatCard title="Pending Payments" amount="Rs. 18,500" icon={<CreditCard size={24} className="text-rose-500" />} />
@@ -686,23 +686,23 @@ function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, o
 
 function QuickNavBtn({ icon, label, onClick, colorClass }: { icon: React.ReactNode, label: string, onClick: () => void, colorClass: string }) {
   return (
-    <button onClick={onClick} className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all gap-2 ${colorClass}`}>
-      {icon}
-      <span className="text-sm font-bold">{label}</span>
+    <button onClick={onClick} className={`flex flex-col items-center justify-center p-3 md:p-4 rounded-xl border transition-all gap-1.5 md:gap-2 ${colorClass}`}>
+      {React.cloneElement(icon as React.ReactElement, { size: 18 })}
+      <span className="text-[11px] md:text-sm font-bold">{label}</span>
     </button>
   );
 }
 
 function StatCard({ title, amount, icon, trend }: { title: string, amount: string, icon: React.ReactNode, trend?: string }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-zinc-200 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm border border-zinc-200 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-4">
-        <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-100">{icon}</div>
+        <div className="p-2.5 md:p-3 rounded-xl bg-zinc-50 border border-zinc-100">{icon}</div>
         {trend && <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">{trend}</span>}
       </div>
       <div>
-        <p className="text-zinc-500 text-sm font-medium mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-zinc-900">{amount}</h3>
+        <p className="text-zinc-500 text-xs md:text-sm font-medium mb-1">{title}</p>
+        <h3 className="text-xl md:text-2xl font-bold text-zinc-900">{amount}</h3>
       </div>
     </div>
   );
@@ -814,19 +814,19 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
 
   return (
     <div className="card transition-all">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <h3 className="text-xl font-bold text-zinc-900">Sales & Invoice Engine</h3>
         
         {!isConfirmed && (
-          <div className="flex bg-zinc-100 p-1 rounded-lg">
+          <div className="flex bg-zinc-100 p-1 rounded-lg w-full md:w-auto">
             <button 
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${paymentMode === 'cash' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+              className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${paymentMode === 'cash' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
               onClick={() => setPaymentMode('cash')}
             >
               Cash
             </button>
             <button 
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${paymentMode === 'bank' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
+              className={`flex-1 md:flex-none px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${paymentMode === 'bank' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}
               onClick={() => setPaymentMode('bank')}
             >
               Bank
@@ -835,20 +835,20 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
         )}
         
         {isConfirmed && (
-          <span className="bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full text-sm flex items-center gap-2">
+          <span className="bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded-full text-xs md:text-sm flex items-center gap-2">
             <CheckCircle2 size={16} /> Sale Confirmed
           </span>
         )}
       </div>
 
       <div className={`transition-opacity duration-300 ${isConfirmed ? 'opacity-60 pointer-events-none' : ''}`}>
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase">Customer Name</label>
+            <label className="block text-[10px] md:text-xs font-semibold text-zinc-500 mb-1.5 uppercase">Customer Name</label>
             <input type="text" className="input-field" placeholder="John Doe" value={customerName} onChange={e => setCustomerName(e.target.value)} disabled={isConfirmed} />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-zinc-500 mb-1.5 uppercase">Phone Number</label>
+            <label className="block text-[10px] md:text-xs font-semibold text-zinc-500 mb-1.5 uppercase">Phone Number</label>
             <input type="text" className="input-field" placeholder="03001234567" value={phone} onChange={e => setPhone(e.target.value)} disabled={isConfirmed} />
           </div>
         </div>
@@ -868,8 +868,8 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
           </div>
         )}
 
-        <div className="mb-6 bg-zinc-50 rounded-xl border border-zinc-200 p-4">
-          <div className="grid grid-cols-12 gap-3 mb-2 text-xs font-semibold text-zinc-500 uppercase px-2">
+        <div className="mb-6 bg-zinc-50 rounded-xl border border-zinc-200 p-3 md:p-4">
+          <div className="hidden md:grid grid-cols-12 gap-3 mb-2 text-xs font-semibold text-zinc-500 uppercase px-2">
             <div className="col-span-4">Item Description</div>
             <div className="col-span-2 text-center">Qty</div>
             <div className="col-span-2 text-center">Rate (Rs.)</div>
@@ -878,8 +878,9 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
           </div>
           
           {items.map((item, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-3 mb-3 items-center">
-              <div className="col-span-4">
+            <div key={idx} className="flex flex-col md:grid md:grid-cols-12 gap-3 mb-4 md:mb-3 items-stretch md:items-center bg-white md:bg-transparent p-4 md:p-0 rounded-xl border md:border-0 border-zinc-200 relative">
+              <div className="md:col-span-4">
+                <label className="block md:hidden text-[10px] font-bold text-zinc-400 uppercase mb-1">Item Name</label>
                 <input 
                   type="text" className="input-field py-2" placeholder="Item Name or select..." 
                   list="inventory-list"
@@ -896,24 +897,29 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
                   {inventoryItems.map(inv => <option key={inv.id} value={inv.name} />)}
                 </datalist>
               </div>
-              <div className="col-span-2">
-                <input 
-                  type="number" className="input-field py-2 text-center" 
-                  value={item.qty} min={1}
-                  onChange={(e) => { const newItems = [...items]; newItems[idx].qty = Number(e.target.value); setItems(newItems); }} 
-                />
+              <div className="grid grid-cols-2 gap-3 md:contents">
+                <div className="md:col-span-2">
+                  <label className="block md:hidden text-[10px] font-bold text-zinc-400 uppercase mb-1">Quantity</label>
+                  <input 
+                    type="number" className="input-field py-2 text-center" 
+                    value={item.qty} min={1}
+                    onChange={(e) => { const newItems = [...items]; newItems[idx].qty = Number(e.target.value); setItems(newItems); }} 
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block md:hidden text-[10px] font-bold text-zinc-400 uppercase mb-1">Rate (Rs.)</label>
+                  <input 
+                    type="number" className="input-field py-2 text-center" 
+                    value={item.rate || ''} placeholder="0"
+                    onChange={(e) => { const newItems = [...items]; newItems[idx].rate = Number(e.target.value); setItems(newItems); }} 
+                  />
+                </div>
               </div>
-              <div className="col-span-2">
-                <input 
-                  type="number" className="input-field py-2 text-center" 
-                  value={item.rate || ''} placeholder="0"
-                  onChange={(e) => { const newItems = [...items]; newItems[idx].rate = Number(e.target.value); setItems(newItems); }} 
-                />
+              <div className="md:col-span-3 text-left md:text-right font-bold text-zinc-900 md:pr-2 text-base md:text-lg border-t md:border-t-0 border-zinc-100 pt-2 md:pt-0 mt-2 md:mt-0 flex justify-between items-center">
+                <span className="md:hidden text-[10px] text-zinc-400 uppercase">Item Total</span>
+                <span>Rs. {(item.qty * item.rate).toLocaleString()}</span>
               </div>
-              <div className="col-span-3 text-right font-bold text-zinc-900 pr-2 text-lg">
-                Rs. {(item.qty * item.rate).toLocaleString()}
-              </div>
-              <div className="col-span-1 text-center">
+              <div className="md:col-span-1 absolute top-2 right-2 md:static text-center">
                 <button onClick={() => removeItem(idx)} className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition-colors">
                   <X size={16} />
                 </button>
@@ -921,7 +927,7 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
             </div>
           ))}
           
-          <button onClick={addItem} className="text-sm text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1 mt-2">
+          <button onClick={addItem} className="text-sm text-blue-600 font-bold hover:text-blue-800 flex items-center gap-1 mt-2 px-2">
             <Plus size={16} /> Add another item
           </button>
         </div>
@@ -929,14 +935,14 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
         {/* EXCHANGE SECTION */}
         {!isConfirmed && (
           <div className="bg-amber-50 rounded-xl border border-amber-200 p-4 mb-6">
-            <h4 className="text-xs font-bold text-amber-700 uppercase mb-3 flex items-center gap-1"><Hammer size={14} /> Exchange / Old Product Discount (Optional)</h4>
-            <div className="grid grid-cols-2 gap-4">
+            <h4 className="text-[10px] md:text-xs font-bold text-amber-700 uppercase mb-3 flex items-center gap-1"><Hammer size={14} /> Exchange / Old Product Discount (Optional)</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold text-amber-600 mb-1 uppercase">Old Product Name</label>
                 <input type="text" className="input-field bg-white border-amber-200" placeholder="e.g. Scrap Battery 12V" value={exchangeItemName} onChange={e => setExchangeItemName(e.target.value)} />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-amber-600 mb-1 uppercase">Exchange Value (Rs. Deduction)</label>
+                <label className="block text-[10px] font-bold text-amber-600 mb-1 uppercase">Exchange Value (Rs.)</label>
                 <input type="number" className="input-field bg-white border-amber-200 font-bold" value={exchangeValue || ''} onChange={e => setExchangeValue(Number(e.target.value))} placeholder="0" />
               </div>
             </div>
@@ -944,35 +950,35 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
         )}
       </div>
 
-      <div className="flex justify-between items-end border-t border-zinc-100 pt-6">
-        <div className="flex gap-3">
+      <div className="flex flex-col-reverse md:flex-row justify-between items-stretch md:items-end border-t border-zinc-100 pt-6 gap-6">
+        <div className="flex flex-col sm:flex-row gap-3">
           {!isConfirmed ? (
-            <button onClick={handleConfirmSale} className="btn-primary bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 px-6">
+            <button onClick={handleConfirmSale} className="btn-primary bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/20 px-6 py-3 w-full sm:w-auto">
               <CheckCircle2 size={18} /> Confirm Sale
             </button>
           ) : (
-            <>
-              <button onClick={handleResetSale} className="btn-primary bg-zinc-200 text-zinc-700 hover:bg-zinc-300">
+            <div className="grid grid-cols-1 sm:flex gap-2 w-full">
+              <button onClick={handleResetSale} className="btn-primary bg-zinc-200 text-zinc-700 hover:bg-zinc-300 w-full sm:w-auto">
                 New Sale
               </button>
-              <button onClick={generatePDF} className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-lg shadow-zinc-900/20">
+              <button onClick={generatePDF} className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 w-full sm:w-auto">
                 <Download size={18} /> Generate PDF
               </button>
-              <button onClick={shareWhatsApp} className="btn-success">
+              <button onClick={shareWhatsApp} className="btn-success w-full sm:w-auto">
                 <Share2 size={18} /> Send WhatsApp
               </button>
-            </>
+            </div>
           )}
         </div>
-        <div className="text-right">
+        <div className="text-left md:text-right bg-zinc-900 md:bg-transparent p-5 md:p-0 rounded-2xl md:rounded-none text-white md:text-zinc-900">
           {exchangeValue > 0 && (
-            <p className="text-zinc-500 text-xs font-bold uppercase mb-1">
+            <p className="text-zinc-400 md:text-zinc-500 text-[10px] md:text-xs font-bold uppercase mb-1">
               Subtotal: Rs. {items.reduce((acc, item) => acc + (item.qty * item.rate), 0).toLocaleString()} 
-              <span className="text-rose-500 ml-2">(- Rs. {exchangeValue.toLocaleString()})</span>
+              <span className="text-rose-400 md:text-rose-500 ml-2">(- Rs. {exchangeValue.toLocaleString()})</span>
             </p>
           )}
-          <p className="text-zinc-500 text-sm font-medium mb-1">Grand Total</p>
-          <h2 className="text-4xl font-black text-zinc-900 tracking-tight">Rs. {calculateTotal().toLocaleString()}</h2>
+          <p className="text-zinc-400 md:text-zinc-500 text-xs md:text-sm font-medium mb-1 uppercase tracking-wider">Grand Total</p>
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight">Rs. {calculateTotal().toLocaleString()}</h2>
         </div>
       </div>
 
@@ -1127,7 +1133,7 @@ function InventoryModule({ inventoryItems, setInventoryItems, scrapInventory }: 
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <h2 className="text-3xl font-bold text-zinc-900 tracking-tight mb-6">Inventory & Barcodes</h2>
+      <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight mb-6">Inventory & Barcodes</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="card h-fit sticky top-8">
           <h3 className="text-xl font-bold text-zinc-900 mb-6 flex items-center gap-2">
@@ -1291,12 +1297,12 @@ function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-end mb-2">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
-          <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Party Ledger</h2>
-          <p className="text-zinc-500 mt-1">Manage purchases, sales, credit, and payment clearing.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Party Ledger</h2>
+          <p className="text-zinc-500 mt-1 text-sm md:text-base">Manage purchases, sales, credit, and payment clearing.</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowAddParty(!showAddParty)}><Plus size={18}/> Add Party</button>
+        <button className="btn-primary w-full md:w-auto" onClick={() => setShowAddParty(!showAddParty)}><Plus size={18}/> Add Party</button>
       </div>
 
 
@@ -1362,27 +1368,31 @@ function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties
       <div className="space-y-4">
         {parties.map((party: any) => (
           <div key={party.id} className="card p-0 overflow-hidden">
-            <div className="flex items-center justify-between p-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between p-4 md:p-5 gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center font-black text-zinc-500">{party.name.charAt(0)}</div>
+                <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center font-black text-zinc-500 shrink-0">{party.name.charAt(0)}</div>
                 <div>
-                  <h4 className="font-bold text-zinc-900">{party.name}</h4>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <h4 className="font-bold text-zinc-900 leading-tight">{party.name}</h4>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${party.type === 'Client' ? 'bg-blue-100 text-blue-700' : party.type === 'Dealer' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'}`}>{party.type}</span>
                     <span className="text-xs text-zinc-400">{party.phone}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right"><p className="text-[10px] font-bold text-zinc-400 uppercase">Paid</p><p className="font-bold text-emerald-600 text-sm">Rs. {party.paid.toLocaleString()}</p></div>
-                <div className="text-right"><p className="text-[10px] font-bold text-zinc-400 uppercase">You Owe</p><p className="font-bold text-rose-500 text-sm">{party.unpaid > 0 ? `Rs. ${party.unpaid.toLocaleString()}` : '—'}</p></div>
-                <div className="text-right"><p className="text-[10px] font-bold text-zinc-400 uppercase">They Owe</p><p className="font-bold text-amber-600 text-sm">{party.receivable > 0 ? `Rs. ${party.receivable.toLocaleString()}` : '—'}</p></div>
-                <div className="flex gap-1 flex-wrap justify-end">
-                  <button onClick={() => openAction(party.id, 'Purchase')} className="px-2.5 py-1 text-[11px] font-semibold bg-rose-50 text-rose-700 rounded-lg hover:bg-rose-100 border border-rose-200">Purchase</button>
-                  <button onClick={() => openAction(party.id, 'Sale')} className="px-2.5 py-1 text-[11px] font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 border border-blue-200">Sell Out</button>
-                  {party.unpaid > 0 && <button onClick={() => openAction(party.id, 'Clear Payment')} className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 border border-emerald-200">Clear Owed</button>}
-                  {party.receivable > 0 && <button onClick={() => openAction(party.id, 'Clear Receivable')} className="px-2.5 py-1 text-[11px] font-semibold bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 border border-amber-200">Collect Due</button>}
-                  <button onClick={() => setExpandedPartyId(expandedPartyId === party.id ? null : party.id)} className="px-2.5 py-1 text-[11px] font-semibold bg-zinc-100 text-zinc-600 rounded-lg hover:bg-zinc-200">{expandedPartyId === party.id ? 'Hide' : 'Ledger'}</button>
+              
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 md:gap-6 border-t md:border-t-0 border-zinc-100 pt-4 md:pt-0">
+                <div className="grid grid-cols-3 md:flex md:items-center gap-4 md:gap-6">
+                  <div className="text-left md:text-right"><p className="text-[10px] font-bold text-zinc-400 uppercase">Paid</p><p className="font-bold text-emerald-600 text-xs md:text-sm">Rs. {party.paid.toLocaleString()}</p></div>
+                  <div className="text-left md:text-right"><p className="text-[10px] font-bold text-zinc-400 uppercase">You Owe</p><p className="font-bold text-rose-500 text-xs md:text-sm">{party.unpaid > 0 ? `Rs. ${party.unpaid.toLocaleString()}` : '—'}</p></div>
+                  <div className="text-left md:text-right"><p className="text-[10px] font-bold text-zinc-400 uppercase">They Owe</p><p className="font-bold text-amber-600 text-xs md:text-sm">{party.receivable > 0 ? `Rs. ${party.receivable.toLocaleString()}` : '—'}</p></div>
+                </div>
+                
+                <div className="flex gap-2 flex-wrap justify-start md:justify-end">
+                  <button onClick={() => openAction(party.id, 'Purchase')} className="flex-1 md:flex-none px-2 md:px-3 py-1.5 text-[11px] font-semibold bg-rose-50 text-rose-700 rounded-lg hover:bg-rose-100 border border-rose-200">Purchase</button>
+                  <button onClick={() => openAction(party.id, 'Sale')} className="flex-1 md:flex-none px-2 md:px-3 py-1.5 text-[11px] font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 border border-blue-200">Sell Out</button>
+                  {party.unpaid > 0 && <button onClick={() => openAction(party.id, 'Clear Payment')} className="flex-1 md:flex-none px-2 md:px-3 py-1.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 border border-emerald-200">Clear Owed</button>}
+                  {party.receivable > 0 && <button onClick={() => openAction(party.id, 'Clear Receivable')} className="flex-1 md:flex-none px-2 md:px-3 py-1.5 text-[11px] font-semibold bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 border border-amber-200">Collect Due</button>}
+                  <button onClick={() => setExpandedPartyId(expandedPartyId === party.id ? null : party.id)} className="flex-1 md:flex-none px-2 md:px-3 py-1.5 text-[11px] font-semibold bg-zinc-100 text-zinc-600 rounded-lg hover:bg-zinc-200">{expandedPartyId === party.id ? 'Hide' : 'Ledger'}</button>
                 </div>
               </div>
             </div>
@@ -1435,12 +1445,12 @@ function BanksModule({ banks, setBanks }: { banks: any[], setBanks: any }) {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-end mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Banks & Finance</h2>
-          <p className="text-zinc-500 mt-1">Manage bank accounts, view history, and balances.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Banks & Finance</h2>
+          <p className="text-zinc-500 mt-1 text-sm md:text-base">Manage bank accounts, view history, and balances.</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowAddBank(!showAddBank)}><Plus size={18}/> Add Bank</button>
+        <button className="btn-primary w-full md:w-auto" onClick={() => setShowAddBank(!showAddBank)}><Plus size={18}/> Add Bank</button>
       </div>
 
       {showAddBank && (
@@ -1464,9 +1474,9 @@ function BanksModule({ banks, setBanks }: { banks: any[], setBanks: any }) {
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Landmark size={100} />
             </div>
-            <h3 className="text-xl font-bold text-zinc-900 mb-2 relative z-10">{bank.name}</h3>
-            <p className="text-sm text-zinc-500 font-semibold uppercase mb-1 relative z-10">Current Balance</p>
-            <p className="text-3xl font-black text-emerald-600 mb-4 relative z-10">Rs. {bank.balance.toLocaleString()}</p>
+            <h3 className="text-lg md:text-xl font-bold text-zinc-900 mb-2 relative z-10">{bank.name}</h3>
+            <p className="text-[10px] md:text-sm text-zinc-500 font-semibold uppercase mb-1 relative z-10">Current Balance</p>
+            <p className="text-2xl md:text-3xl font-black text-emerald-600 mb-4 relative z-10">Rs. {bank.balance.toLocaleString()}</p>
             
             <button 
               onClick={() => setExpandedBankId(expandedBankId === bank.id ? null : bank.id)}
@@ -1514,77 +1524,79 @@ function ReportsModule({ parties, banks, inventoryItems, expenses }: any) {
   const totalExpenses = expenses.reduce((acc: number, e: any) => acc + e.amount, 0);
 
   return <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-end mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Business Reports</h2>
-          <p className="text-zinc-500 mt-1">High-level financial summaries and inventory valuations.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Business Reports</h2>
+          <p className="text-zinc-500 mt-1 text-sm md:text-base">High-level financial summaries and inventory valuations.</p>
         </div>
-        <button className="btn-primary bg-zinc-900 hover:bg-zinc-800"><Download size={18}/> Export PDF</button>
+        <button className="btn-primary w-full md:w-auto bg-zinc-900 hover:bg-zinc-800"><Download size={18}/> Export PDF</button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg shadow-blue-900/20">
-          <div className="flex items-center gap-3 mb-4 opacity-80">
-            <PackageSearch size={24} />
-            <span className="font-semibold uppercase tracking-wider text-sm">Inventory Value</span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-blue-900/20">
+          <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4 opacity-80">
+            <PackageSearch size={18} className="md:w-6 md:h-6" />
+            <span className="font-semibold uppercase tracking-wider text-[10px] md:text-sm">Inventory Value</span>
           </div>
-          <h3 className="text-3xl font-black">Rs. {totalInventoryValue.toLocaleString()}</h3>
+          <h3 className="text-lg md:text-3xl font-black">Rs. {totalInventoryValue.toLocaleString()}</h3>
         </div>
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-6 text-white shadow-lg shadow-emerald-900/20">
-          <div className="flex items-center gap-3 mb-4 opacity-80">
-            <Landmark size={24} />
-            <span className="font-semibold uppercase tracking-wider text-sm">Bank Liquidity</span>
+        <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-emerald-900/20">
+          <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4 opacity-80">
+            <Landmark size={18} className="md:w-6 md:h-6" />
+            <span className="font-semibold uppercase tracking-wider text-[10px] md:text-sm">Bank Liquidity</span>
           </div>
-          <h3 className="text-3xl font-black">Rs. {totalBankBalances.toLocaleString()}</h3>
+          <h3 className="text-lg md:text-3xl font-black">Rs. {totalBankBalances.toLocaleString()}</h3>
         </div>
-        <div className="bg-gradient-to-br from-rose-600 to-pink-700 rounded-2xl p-6 text-white shadow-lg shadow-rose-900/20">
-          <div className="flex items-center gap-3 mb-4 opacity-80">
-            <CreditCard size={24} />
-            <span className="font-semibold uppercase tracking-wider text-sm">Party Liabilities</span>
+        <div className="bg-gradient-to-br from-rose-600 to-pink-700 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-rose-900/20">
+          <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4 opacity-80">
+            <CreditCard size={18} className="md:w-6 md:h-6" />
+            <span className="font-semibold uppercase tracking-wider text-[10px] md:text-sm">Party Liabilities</span>
           </div>
-          <h3 className="text-3xl font-black">Rs. {totalUnpaidPartyBalances.toLocaleString()}</h3>
+          <h3 className="text-lg md:text-3xl font-black">Rs. {totalUnpaidPartyBalances.toLocaleString()}</h3>
         </div>
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg shadow-amber-900/20">
-          <div className="flex items-center gap-3 mb-4 opacity-80">
-            <BadgeIndianRupee size={24} />
-            <span className="font-semibold uppercase tracking-wider text-sm">Total Expenses</span>
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg shadow-amber-900/20">
+          <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4 opacity-80">
+            <BadgeIndianRupee size={18} className="md:w-6 md:h-6" />
+            <span className="font-semibold uppercase tracking-wider text-[10px] md:text-sm">Total Expenses</span>
           </div>
-          <h3 className="text-3xl font-black">Rs. {totalExpenses.toLocaleString()}</h3>
+          <h3 className="text-lg md:text-3xl font-black">Rs. {totalExpenses.toLocaleString()}</h3>
         </div>
       </div>
 
-      <div className="card">
-        <h3 className="text-xl font-bold text-zinc-900 mb-6">Recent Logged Activity</h3>
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-zinc-200 text-zinc-500 text-sm font-semibold uppercase">
-              <th className="pb-4">Date</th>
-              <th className="pb-4">Activity Type</th>
-              <th className="pb-4">Description</th>
-              <th className="pb-4 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100">
-            <tr className="hover:bg-zinc-50 transition-colors">
-              <td className="py-4 text-zinc-500">{new Date().toLocaleDateString()}</td>
-              <td className="py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">Sale</span></td>
-              <td className="py-4 font-medium text-zinc-900">Walk-in Customer - Cement Bag 50kg</td>
-              <td className="py-4 text-right font-bold text-emerald-600">+Rs. 6,000</td>
-            </tr>
-            <tr className="hover:bg-zinc-50 transition-colors">
-              <td className="py-4 text-zinc-500">Yesterday</td>
-              <td className="py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-rose-100 text-rose-700">Purchase</span></td>
-              <td className="py-4 font-medium text-zinc-900">Restock - Best Steel Mills</td>
-              <td className="py-4 text-right font-bold text-rose-500">-Rs. 150,000</td>
-            </tr>
-            <tr className="hover:bg-zinc-50 transition-colors">
-              <td className="py-4 text-zinc-500">Oct 12, 2026</td>
-              <td className="py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">Payment</span></td>
-              <td className="py-4 font-medium text-zinc-900">Received from Iqbal Hardware (Meezan Bank)</td>
-              <td className="py-4 text-right font-bold text-blue-600">+Rs. 45,000</td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="card p-0 overflow-hidden">
+        <h3 className="text-lg md:text-xl font-bold text-zinc-900 p-6 pb-0">Recent Logged Activity</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
+            <thead>
+              <tr className="border-b border-zinc-200 text-zinc-500 text-xs font-semibold uppercase">
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Activity Type</th>
+                <th className="px-6 py-4">Description</th>
+                <th className="px-6 py-4 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              <tr className="hover:bg-zinc-50 transition-colors">
+                <td className="px-6 py-4 text-zinc-500">{new Date().toLocaleDateString()}</td>
+                <td className="px-6 py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">Sale</span></td>
+                <td className="px-6 py-4 font-medium text-zinc-900">Walk-in Customer - Cement Bag 50kg</td>
+                <td className="px-6 py-4 text-right font-bold text-emerald-600">+Rs. 6,000</td>
+              </tr>
+              <tr className="hover:bg-zinc-50 transition-colors">
+                <td className="px-6 py-4 text-zinc-500">Yesterday</td>
+                <td className="px-6 py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-rose-100 text-rose-700">Purchase</span></td>
+                <td className="px-6 py-4 font-medium text-zinc-900">Restock - Best Steel Mills</td>
+                <td className="px-6 py-4 text-right font-bold text-rose-500">-Rs. 150,000</td>
+              </tr>
+              <tr className="hover:bg-zinc-50 transition-colors">
+                <td className="px-6 py-4 text-zinc-500">Oct 12, 2026</td>
+                <td className="px-6 py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">Payment</span></td>
+                <td className="px-6 py-4 font-medium text-zinc-900">Received from Iqbal Hardware (Meezan Bank)</td>
+                <td className="px-6 py-4 text-right font-bold text-blue-600">+Rs. 45,000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>;
 }
@@ -1644,9 +1656,9 @@ function SettingsModule() {
       <div className="card border-rose-200">
         <h3 className="text-lg font-bold text-rose-700 mb-4">Danger Zone</h3>
         <p className="text-sm text-zinc-500 mb-4">These actions are destructive and cannot be undone.</p>
-        <div className="flex gap-3">
-          <button onClick={() => { if(confirm('Clear all sales data?')) alert('Sales data cleared (demo).'); }} className="px-4 py-2 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 text-sm font-semibold hover:bg-rose-100 transition-colors">Clear Sales History</button>
-          <button onClick={() => { if(confirm('Reset all data to defaults?')) alert('All data reset (demo).'); }} className="px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-semibold hover:bg-rose-700 transition-colors">Factory Reset</button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button onClick={() => { if(confirm('Clear all sales data?')) alert('Sales data cleared (demo).'); }} className="w-full sm:w-auto px-4 py-2 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 text-sm font-semibold hover:bg-rose-100 transition-colors">Clear Sales History</button>
+          <button onClick={() => { if(confirm('Reset all data to defaults?')) alert('All data reset (demo).'); }} className="w-full sm:w-auto px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-semibold hover:bg-rose-700 transition-colors">Factory Reset</button>
         </div>
       </div>
     </div>
@@ -1677,95 +1689,98 @@ function HistoryModule({ history }: { history: HistoryEntry[] }) {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Sale & Purchase History</h2>
-          <p className="text-zinc-500 mt-1">Complete log of all sales and purchases across the system.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Sale & Purchase History</h2>
+          <p className="text-zinc-500 mt-1 text-sm md:text-base">Complete log of all sales and purchases across the system.</p>
         </div>
-        <button onClick={clearFilters} className="px-4 py-2 bg-zinc-100 text-zinc-700 rounded-lg text-sm font-semibold hover:bg-zinc-200 transition-colors">Clear Filters</button>
+        <button onClick={clearFilters} className="btn-primary w-full md:w-auto bg-zinc-100 text-zinc-700 hover:bg-zinc-200 border-zinc-200 shadow-none text-sm">Clear Filters</button>
       </div>
 
       {/* SUMMARY CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm">
-          <p className="text-xs font-bold text-zinc-400 uppercase">Total Records</p>
-          <p className="text-3xl font-black text-zinc-900 mt-1">{filtered.length}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-white rounded-xl p-4 md:p-5 border border-zinc-200 shadow-sm">
+          <p className="text-[10px] md:text-xs font-bold text-zinc-400 uppercase">Records</p>
+          <p className="text-xl md:text-3xl font-black text-zinc-900 mt-1">{filtered.length}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-emerald-200 shadow-sm">
-          <p className="text-xs font-bold text-emerald-500 uppercase">Sales ({salesCount})</p>
-          <p className="text-3xl font-black text-emerald-600 mt-1">Rs. {totalSales.toLocaleString()}</p>
+        <div className="bg-white rounded-xl p-4 md:p-5 border border-emerald-200 shadow-sm">
+          <p className="text-[10px] md:text-xs font-bold text-emerald-500 uppercase">Sales</p>
+          <p className="text-xl md:text-3xl font-black text-emerald-600 mt-1">Rs. {totalSales.toLocaleString()}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-rose-200 shadow-sm">
-          <p className="text-xs font-bold text-rose-500 uppercase">Purchases ({purchaseCount})</p>
-          <p className="text-3xl font-black text-rose-600 mt-1">Rs. {totalPurchases.toLocaleString()}</p>
+        <div className="bg-white rounded-xl p-4 md:p-5 border border-rose-200 shadow-sm">
+          <p className="text-[10px] md:text-xs font-bold text-rose-500 uppercase">Purchases</p>
+          <p className="text-xl md:text-3xl font-black text-rose-600 mt-1">Rs. {totalPurchases.toLocaleString()}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-blue-200 shadow-sm">
-          <p className="text-xs font-bold text-blue-500 uppercase">Net Flow</p>
-          <p className={`text-3xl font-black mt-1 ${totalSales - totalPurchases >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>Rs. {(totalSales - totalPurchases).toLocaleString()}</p>
+        <div className="bg-white rounded-xl p-4 md:p-5 border border-blue-200 shadow-sm">
+          <p className="text-[10px] md:text-xs font-bold text-blue-500 uppercase">Net Flow</p>
+          <p className={`text-xl md:text-3xl font-black mt-1 ${totalSales - totalPurchases >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>Rs. {(totalSales - totalPurchases).toLocaleString()}</p>
         </div>
       </div>
 
       {/* FILTERS */}
-      <div className="card p-5">
-        <div className="flex flex-wrap items-end gap-6">
-          <div>
+      <div className="card p-4 md:p-5">
+        <div className="flex flex-col md:flex-row items-stretch md:items-end gap-4 md:gap-6">
+          <div className="flex-1">
             <label className="block text-xs font-semibold text-zinc-500 mb-2 uppercase flex items-center gap-1"><Filter size={14} /> Type</label>
             <div className="flex bg-zinc-100 p-1 rounded-lg">
               {(['All','Sale','Purchase'] as const).map(t => (
-                <button key={t} onClick={() => setTypeFilter(t)} className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-colors ${typeFilter === t ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>{t === 'All' ? 'All' : t + 's'}</button>
+                <button key={t} onClick={() => setTypeFilter(t)} className={`flex-1 px-4 py-1.5 rounded-md text-xs md:text-sm font-semibold transition-colors ${typeFilter === t ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>{t === 'All' ? 'All' : t + 's'}</button>
               ))}
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-zinc-500 mb-2 uppercase flex items-center gap-1"><CalendarDays size={14} /> From Date</label>
-            <input type="date" className="input-field py-2 w-44" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+          <div className="grid grid-cols-2 gap-3 flex-[2]">
+            <div>
+              <label className="block text-xs font-semibold text-zinc-500 mb-2 uppercase flex items-center gap-1"><CalendarDays size={14} /> From</label>
+              <input type="date" className="input-field py-2 w-full" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-zinc-500 mb-2 uppercase flex items-center gap-1"><CalendarDays size={14} /> To</label>
+              <input type="date" className="input-field py-2 w-full" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-zinc-500 mb-2 uppercase flex items-center gap-1"><CalendarDays size={14} /> To Date</label>
-            <input type="date" className="input-field py-2 w-44" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-          </div>
-          <div className="ml-auto text-sm text-zinc-500 font-medium">Showing <strong className="text-zinc-900">{filtered.length}</strong> of {history.length} records</div>
         </div>
       </div>
 
       {/* TABLE */}
       <div className="card p-0 overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-500 text-xs font-bold uppercase">
-              <th className="px-6 py-4">Date</th>
-              <th className="px-6 py-4">Type</th>
-              <th className="px-6 py-4">Party / Customer</th>
-              <th className="px-6 py-4">Items</th>
-              <th className="px-6 py-4 text-center">Qty</th>
-              <th className="px-6 py-4">Mode</th>
-              <th className="px-6 py-4 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100">
-            {filtered.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-16 text-zinc-400 font-medium">No transactions found for the selected filters.</td></tr>
-            ) : (
-              filtered.map(h => (
-                <tr key={h.id} className="hover:bg-zinc-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-zinc-600 font-medium whitespace-nowrap">{h.date}</td>
-                  <td className="px-6 py-4">
-                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${h.type === 'Sale' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{h.type}</span>
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-zinc-900">{h.customer}</td>
-                  <td className="px-6 py-4 text-sm text-zinc-600 max-w-xs truncate">{h.items}</td>
-                  <td className="px-6 py-4 text-center font-bold text-zinc-700">{h.qty}</td>
-                  <td className="px-6 py-4">
-                    <span className="text-[10px] font-semibold uppercase bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">{h.mode}</span>
-                  </td>
-                  <td className={`px-6 py-4 text-right font-black text-lg ${h.type === 'Sale' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {h.type === 'Sale' ? '+' : '-'}Rs. {h.amount.toLocaleString()}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[800px]">
+            <thead>
+              <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-500 text-xs font-bold uppercase">
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4">Type</th>
+                <th className="px-6 py-4">Party / Customer</th>
+                <th className="px-6 py-4">Items</th>
+                <th className="px-6 py-4 text-center">Qty</th>
+                <th className="px-6 py-4">Mode</th>
+                <th className="px-6 py-4 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-16 text-zinc-400 font-medium">No transactions found for the selected filters.</td></tr>
+              ) : (
+                filtered.map(h => (
+                  <tr key={h.id} className="hover:bg-zinc-50 transition-colors">
+                    <td className="px-6 py-4 text-sm text-zinc-600 font-medium whitespace-nowrap">{h.date}</td>
+                    <td className="px-6 py-4">
+                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${h.type === 'Sale' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{h.type}</span>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-zinc-900">{h.customer}</td>
+                    <td className="px-6 py-4 text-sm text-zinc-600 max-w-xs truncate">{h.items}</td>
+                    <td className="px-6 py-4 text-center font-bold text-zinc-700">{h.qty}</td>
+                    <td className="px-6 py-4">
+                      <span className="text-[10px] font-semibold uppercase bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded">{h.mode}</span>
+                    </td>
+                    <td className={`px-6 py-4 text-right font-black text-lg ${h.type === 'Sale' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {h.type === 'Sale' ? '+' : '-'}Rs. {h.amount.toLocaleString()}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -1779,15 +1794,15 @@ function ReturnsModule({ returnsInventory, returnsHistory, scrapInventory }: { r
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h2 className="text-3xl font-bold text-zinc-900 tracking-tight">Returns & Warranty</h2>
-          <p className="text-zinc-500 mt-1">Manage faulty items, warranty claims, and scrap inventory.</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Returns & Warranty</h2>
+          <p className="text-zinc-500 mt-1 text-sm md:text-base">Manage faulty items, warranty claims, and scrap inventory.</p>
         </div>
-        <div className="flex bg-zinc-100 p-1 rounded-xl">
-          <button onClick={() => setActiveSubTab('warranty')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'warranty' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Warranty/Faulty</button>
-          <button onClick={() => setActiveSubTab('scrap')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'scrap' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Scrap Inventory</button>
-          <button onClick={() => setActiveSubTab('history')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'history' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Return History</button>
+        <div className="flex bg-zinc-100 p-1 rounded-xl w-full md:w-auto">
+          <button onClick={() => setActiveSubTab('warranty')} className={`flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${activeSubTab === 'warranty' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Warranty</button>
+          <button onClick={() => setActiveSubTab('scrap')} className={`flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${activeSubTab === 'scrap' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>Scrap</button>
+          <button onClick={() => setActiveSubTab('history')} className={`flex-1 md:flex-none px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${activeSubTab === 'history' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'}`}>History</button>
         </div>
       </div>
 
