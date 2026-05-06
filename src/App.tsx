@@ -43,6 +43,7 @@ export default function App() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showReturnEntryModal, setShowReturnEntryModal] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Global Transaction History
   const [globalHistory, setGlobalHistory] = useState<HistoryEntry[]>([
@@ -86,8 +87,19 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-zinc-50 overflow-hidden font-sans">
+      {/* MOBILE OVERLAY */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-in fade-in" 
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* SIDEBAR */}
-      <aside className="w-72 bg-zinc-900 text-zinc-300 flex flex-col shadow-2xl relative z-20 shrink-0">
+      <aside className={`
+        fixed inset-y-0 left-0 w-72 bg-zinc-900 text-zinc-300 flex flex-col shadow-2xl z-50 transform transition-transform duration-300 lg:relative lg:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
         <div className="p-6 border-b border-zinc-800">
           <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
@@ -98,14 +110,14 @@ export default function App() {
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-          <SidebarItem icon={<LayoutDashboard size={20} />} label="Command Center" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-          <SidebarItem icon={<PackageSearch size={20} />} label="Inventory & Barcodes" active={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} />
-          <SidebarItem icon={<Users size={20} />} label="Parties & Ledger" active={activeTab === 'parties'} onClick={() => setActiveTab('parties')} />
-          <SidebarItem icon={<Landmark size={20} />} label="Banks & Finance" active={activeTab === 'banks'} onClick={() => setActiveTab('banks')} />
-          <SidebarItem icon={<History size={20} />} label="Sale & Purchase History" active={activeTab === 'history'} onClick={() => setActiveTab('history')} />
-          <SidebarItem icon={<RotateCcw size={20} />} label="Returns & Warranty" active={activeTab === 'returns'} onClick={() => setActiveTab('returns')} />
-          <SidebarItem icon={<FileBarChart size={20} />} label="Reports" active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />
-          <SidebarItem icon={<Settings size={20} />} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+          <SidebarItem icon={<LayoutDashboard size={20} />} label="Command Center" active={activeTab === 'dashboard'} onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<PackageSearch size={20} />} label="Inventory & Barcodes" active={activeTab === 'inventory'} onClick={() => { setActiveTab('inventory'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Users size={20} />} label="Parties & Ledger" active={activeTab === 'parties'} onClick={() => { setActiveTab('parties'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Landmark size={20} />} label="Banks & Finance" active={activeTab === 'banks'} onClick={() => { setActiveTab('banks'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<History size={20} />} label="Sale & Purchase History" active={activeTab === 'history'} onClick={() => { setActiveTab('history'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<RotateCcw size={20} />} label="Returns & Warranty" active={activeTab === 'returns'} onClick={() => { setActiveTab('returns'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<FileBarChart size={20} />} label="Reports" active={activeTab === 'reports'} onClick={() => { setActiveTab('reports'); setIsSidebarOpen(false); }} />
+          <SidebarItem icon={<Settings size={20} />} label="Settings" active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }} />
         </nav>
 
         <div className="p-4 border-t border-zinc-800">
@@ -122,8 +134,14 @@ export default function App() {
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
         {/* HEADER */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-zinc-200 flex items-center justify-between px-8 z-20 sticky top-0 shrink-0">
-          <div className="flex items-center gap-4 w-96">
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-zinc-200 flex items-center justify-between px-4 lg:px-8 z-20 sticky top-0 shrink-0">
+          <div className="flex items-center gap-4 flex-1 lg:max-w-96">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 lg:hidden text-zinc-500 hover:bg-zinc-100 rounded-lg transition-colors"
+            >
+              <SidebarItem icon={<LayoutDashboard size={24} />} label="" active={false} onClick={() => {}} /> {/* Using dummy sidebar item for icon style */}
+            </button>
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
               <input 
@@ -958,70 +976,90 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
         </div>
       </div>
 
-      {/* HIDDEN RECEIPT - uses inline styles so html2canvas can render it */}
-      <div ref={receiptRef} style={{ position:'absolute', left:'-9999px', top:0, width:'600px', padding:'40px', background:'#fff', fontFamily:'system-ui, sans-serif', color:'#18181b', border:'2px solid #e5e7eb' }}>
-        <div style={{ textAlign:'center', marginBottom:'32px', borderBottom:'3px solid #18181b', paddingBottom:'24px' }}>
-          <div style={{ fontSize:'32px', fontWeight:900, textTransform:'uppercase', letterSpacing:'6px', marginBottom:'8px' }}>Nisar Traders</div>
-          <div style={{ color:'#71717a', fontSize:'14px' }}>Main Market, Lahore | Ph: 0300-1234567</div>
-        </div>
-        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'32px' }}>
-          <div>
-            <div style={{ fontSize:'11px', fontWeight:700, color:'#a1a1aa', textTransform:'uppercase' }}>Billed To:</div>
-            <div style={{ fontSize:'18px', fontWeight:700 }}>{customerName || 'Walk-in Customer'}</div>
-            <div style={{ color:'#71717a' }}>{phone || 'N/A'}</div>
+      {/* HIDDEN RECEIPT - moved to a safer 'off-screen' but still layouted position to avoid blank PDFs */}
+      <div style={{ position: 'fixed', top: 0, left: 0, zIndex: -50, pointerEvents: 'none', opacity: 0 }}>
+        <div ref={receiptRef} style={{ width:'600px', padding:'50px', background:'#fff', fontFamily:'"Inter", system-ui, sans-serif', color:'#18181b', border:'1px solid #f4f4f5', boxShadow:'0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+          {/* Header Section */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'50px', borderBottom:'4px solid #18181b', paddingBottom:'30px' }}>
+            <div>
+              <div style={{ fontSize:'36px', fontWeight:900, textTransform:'uppercase', letterSpacing:'4px', color:'#18181b', marginBottom:'4px' }}>Nisar Traders</div>
+              <div style={{ color:'#71717a', fontSize:'14px', fontWeight:500 }}>Premium Hardware & Construction Material</div>
+              <div style={{ color:'#71717a', fontSize:'14px' }}>Main Market, Lahore | Ph: 0300-1234567</div>
+            </div>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:'24px', fontWeight:900, color:'#2563eb', marginBottom:'4px' }}>INVOICE</div>
+              <div style={{ color:'#71717a', fontSize:'13px' }}>#{Date.now().toString().slice(-6)}</div>
+            </div>
           </div>
-          <div style={{ textAlign:'right' }}>
-            <div style={{ fontSize:'11px', fontWeight:700, color:'#a1a1aa', textTransform:'uppercase' }}>Receipt Details:</div>
-            <div style={{ fontWeight:700 }}>Date: {new Date().toLocaleDateString()}</div>
-            <div style={{ fontWeight:700 }}>Mode: <span style={{ textTransform:'uppercase', color:'#2563eb' }}>{paymentMode}</span></div>
+
+          {/* Billing Details */}
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'40px', gap:'40px' }}>
+            <div style={{ flex:1, padding:'20px', background:'#fbfbfb', borderRadius:'12px' }}>
+              <div style={{ fontSize:'11px', fontWeight:800, color:'#a1a1aa', textTransform:'uppercase', marginBottom:'8px', letterSpacing:'1px' }}>Billed To:</div>
+              <div style={{ fontSize:'20px', fontWeight:800, color:'#18181b', marginBottom:'4px' }}>{customerName || 'Walk-in Customer'}</div>
+              <div style={{ color:'#52525b', fontSize:'14px', display:'flex', alignItems:'center', gap:'4px' }}>{phone || 'No Contact Provided'}</div>
+            </div>
+            <div style={{ textAlign:'right', padding:'20px' }}>
+              <div style={{ fontSize:'11px', fontWeight:800, color:'#a1a1aa', textTransform:'uppercase', marginBottom:'8px', letterSpacing:'1px' }}>Invoice Details:</div>
+              <div style={{ fontSize:'15px', fontWeight:700, marginBottom:'4px' }}>Date: <span style={{ fontWeight:500 }}>{new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })}</span></div>
+              <div style={{ fontSize:'15px', fontWeight:700 }}>Mode: <span style={{ textTransform:'uppercase', color:'#2563eb' }}>{paymentMode}</span></div>
+            </div>
           </div>
-        </div>
-        <table style={{ width:'100%', marginBottom:'32px', borderCollapse:'collapse', textAlign:'left' }}>
-          <thead>
-            <tr style={{ borderBottom:'2px solid #e4e4e7' }}>
-              <th style={{ padding:'12px 0', color:'#71717a', textTransform:'uppercase', fontSize:'12px', fontWeight:700 }}>Item</th>
-              <th style={{ padding:'12px 0', color:'#71717a', textTransform:'uppercase', fontSize:'12px', fontWeight:700, textAlign:'center' }}>Qty</th>
-              <th style={{ padding:'12px 0', color:'#71717a', textTransform:'uppercase', fontSize:'12px', fontWeight:700, textAlign:'right' }}>Rate</th>
-              <th style={{ padding:'12px 0', color:'#71717a', textTransform:'uppercase', fontSize:'12px', fontWeight:700, textAlign:'right' }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, idx) => (item.name || item.rate > 0) && (
-              <tr key={idx} style={{ borderBottom:'1px solid #f4f4f5' }}>
-                <td style={{ padding:'16px 0', fontWeight:600 }}>{item.name || 'Unnamed Item'}</td>
-                <td style={{ padding:'16px 0', textAlign:'center' }}>{item.qty}</td>
-                <td style={{ padding:'16px 0', textAlign:'right' }}>Rs. {item.rate.toLocaleString()}</td>
-                <td style={{ padding:'16px 0', textAlign:'right', fontWeight:700 }}>Rs. {(item.qty * item.rate).toLocaleString()}</td>
+
+          {/* Table */}
+          <table style={{ width:'100%', marginBottom:'40px', borderCollapse:'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor:'#18181b', color:'#ffffff' }}>
+                <th style={{ padding:'14px 20px', textAlign:'left', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', borderRadius:'8px 0 0 0' }}>Item Description</th>
+                <th style={{ padding:'14px 20px', textAlign:'center', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px' }}>Qty</th>
+                <th style={{ padding:'14px 20px', textAlign:'right', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px' }}>Rate</th>
+                <th style={{ padding:'14px 20px', textAlign:'right', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', borderRadius:'0 8px 0 0' }}>Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:'48px' }}>
-          <div style={{ width:'250px' }}>
-            {exchangeValue > 0 && (
-              <>
-                <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', color:'#71717a', fontSize:'13px' }}>
-                  <span>Subtotal</span>
-                  <span>Rs. {items.reduce((acc, item) => acc + (item.qty * item.rate), 0).toLocaleString()}</span>
+            </thead>
+            <tbody>
+              {items.map((item, idx) => (item.name || item.rate > 0) && (
+                <tr key={idx} style={{ borderBottom:'1px solid #f4f4f5' }}>
+                  <td style={{ padding:'18px 20px', fontWeight:600, color:'#18181b' }}>{item.name || 'Unnamed Item'}</td>
+                  <td style={{ padding:'18px 20px', textAlign:'center', color:'#52525b' }}>{item.qty}</td>
+                  <td style={{ padding:'18px 20px', textAlign:'right', color:'#52525b' }}>Rs. {item.rate.toLocaleString()}</td>
+                  <td style={{ padding:'18px 20px', textAlign:'right', fontWeight:800, color:'#18181b' }}>Rs. {(item.qty * item.rate).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Summary */}
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:'60px' }}>
+            <div style={{ width:'300px' }}>
+              {exchangeValue > 0 && (
+                <div style={{ padding:'16px', background:'#fff1f2', borderRadius:'12px', marginBottom:'12px', border:'1px solid #fecdd3' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', color:'#52525b', fontSize:'13px', fontWeight:500 }}>
+                    <span>Gross Subtotal</span>
+                    <span>Rs. {items.reduce((acc, item) => acc + (item.qty * item.rate), 0).toLocaleString()}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', color:'#e11d48', fontSize:'13px', fontWeight:700 }}>
+                    <span>Exchange Discount</span>
+                    <span>- Rs. {exchangeValue.toLocaleString()}</span>
+                  </div>
                 </div>
-                <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', color:'#e11d48', fontSize:'13px' }}>
-                  <span>Old Item Discount ({exchangeItemName})</span>
-                  <span>- Rs. {exchangeValue.toLocaleString()}</span>
-                </div>
-              </>
-            )}
-            <div style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'4px solid #18181b' }}>
-              <span style={{ fontWeight:700, fontSize:'20px', textTransform:'uppercase' }}>Total</span>
-              <span style={{ fontWeight:900, fontSize:'24px' }}>Rs. {calculateTotal().toLocaleString()}</span>
+              )}
+              <div style={{ display:'flex', justifyContent:'space-between', padding:'20px', background:'#18181b', borderRadius:'12px', color:'#ffffff' }}>
+                <span style={{ fontWeight:600, fontSize:'16px', textTransform:'uppercase', alignSelf:'center' }}>Total Amount</span>
+                <span style={{ fontWeight:900, fontSize:'28px' }}>Rs. {calculateTotal().toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ textAlign:'center', paddingTop:'40px', borderTop:'1px dashed #e4e4e7' }}>
+            <div style={{ fontWeight:800, color:'#18181b', fontSize:'14px', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'2px' }}>Thank you for your business!</div>
+            <div style={{ color:'#a1a1aa', fontSize:'12px', maxWidth:'400px', margin:'0 auto', lineHeight:1.5 }}>
+              This is a computer-generated receipt. Goods once sold cannot be returned or exchanged without the original receipt.
             </div>
           </div>
         </div>
-        <div style={{ textAlign:'center', color:'#a1a1aa', fontSize:'13px' }}>
-          <div style={{ fontWeight:700, marginBottom:'4px' }}>Thank you for your business!</div>
-          <div>Goods once sold cannot be returned without original receipt.</div>
-        </div>
-      </div>
     </div>
+  </div>
   );
 }
 
