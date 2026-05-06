@@ -27,7 +27,7 @@ import {
   Hammer,
   RotateCcw
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toJpeg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import Barcode from 'react-barcode';
 
@@ -752,17 +752,23 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
   const generatePDF = async () => {
     if (!receiptRef.current) return;
     try {
-      const canvas = await html2canvas(receiptRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      // Use toJpeg from html-to-image which is more robust with modern CSS (oklch etc)
+      const dataUrl = await toJpeg(receiptRef.current, { 
+        quality: 1.0, 
+        backgroundColor: '#ffffff',
+        pixelRatio: 2
+      });
+      
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
+      const imgProps = pdf.getImageProperties(dataUrl);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Receipt-${customerName || 'Customer'}-${Date.now()}.pdf`);
     } catch (err) {
       console.error("Failed to generate PDF", err);
-      alert("Receipt generation failed. Please try again.");
+      alert("Receipt generation failed. This might be due to a browser restriction. Please try again or use a different browser.");
     }
   };
 
@@ -781,6 +787,10 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
 
     const encodedText = encodeURIComponent(text);
     const sanitizedPhone = phone.replace(/\D/g, ''); 
+    
+    // WhatsApp API doesn't support sending files via URL directly
+    alert("WhatsApp message prepared! Please remember to attach the downloaded PDF receipt manually in WhatsApp after the chat opens.");
+    
     window.open(`https://wa.me/${sanitizedPhone}?text=${encodedText}`, '_blank');
   };
 
