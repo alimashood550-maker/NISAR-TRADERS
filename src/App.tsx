@@ -28,6 +28,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import Barcode from 'react-barcode';
 
 // TYPES
@@ -748,17 +749,19 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
     setExchangeValue(0);
   }
 
-  const generateJPG = async () => {
+  const generatePDF = async () => {
     if (!receiptRef.current) return;
     try {
       const canvas = await html2canvas(receiptRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      
-      const link = document.createElement('a');
-      link.download = `Receipt-${customerName || 'Customer'}-${Date.now()}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.95);
-      link.click();
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Receipt-${customerName || 'Customer'}-${Date.now()}.pdf`);
     } catch (err) {
-      console.error("Failed to generate JPG", err);
+      console.error("Failed to generate PDF", err);
       alert("Receipt generation failed. Please try again.");
     }
   };
@@ -924,8 +927,8 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
               <button onClick={handleResetSale} className="btn-primary bg-zinc-200 text-zinc-700 hover:bg-zinc-300">
                 New Sale
               </button>
-              <button onClick={generateJPG} className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-lg shadow-zinc-900/20">
-                <Download size={18} /> Generate JPG
+              <button onClick={generatePDF} className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-lg shadow-zinc-900/20">
+                <Download size={18} /> Generate PDF
               </button>
               <button onClick={shareWhatsApp} className="btn-success">
                 <Share2 size={18} /> Send WhatsApp
