@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { supabase } from './supabase';
 import {
   LayoutDashboard,
   PackageSearch,
@@ -46,44 +47,52 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Global Transaction History
-  const [globalHistory, setGlobalHistory] = useState<HistoryEntry[]>([
-    { id: 1, type: 'Sale', date: '2026-05-05', customer: 'Walk-in Customer', items: 'Cement Bag 50kg x5', qty: 5, amount: 6000, mode: 'Cash' },
-    { id: 2, type: 'Purchase', date: '2026-05-04', customer: 'Best Steel Mills', items: 'Steel Pipe 2inch x100', qty: 100, amount: 450000, mode: 'Bank' },
-    { id: 3, type: 'Sale', date: '2026-05-03', customer: 'Iqbal Hardware', items: 'Paint White 5L x10', qty: 10, amount: 25000, mode: 'Credit' },
-    { id: 4, type: 'Purchase', date: '2026-05-01', customer: 'City Cement Co.', items: 'Cement Bag 50kg x500', qty: 500, amount: 500000, mode: 'Cash' },
-  ]);
-  const logTransaction = (entry: Omit<HistoryEntry, 'id'>) => setGlobalHistory(prev => [{ ...entry, id: Date.now() }, ...prev]);
+  const [globalHistory, setGlobalHistory] = useState<HistoryEntry[]>([]);
+  const logTransaction = async (entry: Omit<HistoryEntry, 'id'>) => {
+    const { data, error } = await supabase.from('global_history').insert([entry]).select().single();
+    if (error) console.error("Error logging transaction:", error);
+    if (data) setGlobalHistory(prev => [data, ...prev]);
+  };
 
-  // Global Mock State
-  const [banks, setBanks] = useState([
-    { id: 1, name: 'Meezan Bank', balance: 150000, transactions: [{id:1,type:'Sale',desc:'Ali Traders',amount:15000,date:'Today'},{id:2,type:'Purchase',desc:'Steel Mills',amount:-50000,date:'Yesterday'},{id:3,type:'Payment',desc:'Iqbal Hardware',amount:120000,date:'Oct 15'}] },
-    { id: 2, name: 'HBL', balance: 85000, transactions: [{id:1,type:'Payment',desc:'Best Steel Mills',amount:-1500000,date:'Oct 12'},{id:2,type:'Sale',desc:'Walk-in',amount:25000,date:'Oct 10'}] }
-  ]);
+  // Global Mock State (Now from Supabase)
+  const [banks, setBanks] = useState<any[]>([]);
+  const [parties, setParties] = useState<any[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [scrapInventory, setScrapInventory] = useState<ScrapItem[]>([]);
+  const [returnsInventory, setReturnsInventory] = useState<ReturnItem[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
 
-  const [parties, setParties] = useState([
-    { id: 1, name: 'Best Steel Mills', type: 'Dealer', phone: '0321-9876543', paid: 1500000, unpaid: 250000, receivable: 0, transactions: [{id:1,type:'Purchase',mode:'credit',amount:1750000,date:'Sep 01, 2026',note:'Steel Rods Bulk'},{id:2,type:'Clear Payment',mode:'bank',amount:1500000,date:'Oct 12, 2026',note:'Cleared via HBL'}] },
-    { id: 2, name: 'City Cement Co.', type: 'Distributor', phone: '0300-1112233', paid: 800000, unpaid: 0, receivable: 0, transactions: [{id:1,type:'Purchase',mode:'cash',amount:800000,date:'Sep 15, 2026',note:'Cement 500 Bags (Cash)'}] },
-    { id: 3, name: 'Iqbal Hardware', type: 'Client', phone: '0333-4445566', paid: 120000, unpaid: 0, receivable: 45000, transactions: [{id:1,type:'Sale',mode:'credit',amount:165000,date:'Oct 01, 2026',note:'Hardware Mix (Credit)'},{id:2,type:'Clear Receivable',mode:'cash',amount:120000,date:'Oct 15, 2026',note:'Partial Cash Collection'}] },
-  ]);
+  const fetchData = async () => {
+    const [
+      { data: history },
+      { data: bankData },
+      { data: partyData },
+      { data: invData },
+      { data: scrapData },
+      { data: returnsData },
+      { data: expData }
+    ] = await Promise.all([
+      supabase.from('global_history').select('*').order('created_at', { ascending: false }),
+      supabase.from('banks').select('*'),
+      supabase.from('parties').select('*'),
+      supabase.from('inventory').select('*'),
+      supabase.from('scrap_inventory').select('*').order('date', { ascending: false }),
+      supabase.from('returns_inventory').select('*').order('date', { ascending: false }),
+      supabase.from('expenses').select('*').order('date', { ascending: false })
+    ]);
 
-  const [inventoryItems, setInventoryItems] = useState([
-    { id: 1, name: 'Cement Bag 50kg', stock: 450, sku: '82347102', price: 1200, status: 'optimal' },
-    { id: 2, name: 'Steel Pipe 2inch', stock: 12, sku: '91823746', price: 4500, status: 'low' },
-    { id: 3, name: 'Paint White 5L', stock: 85, sku: '19283746', price: 2500, status: 'optimal' },
-  ]);
+    if (history) setGlobalHistory(history);
+    if (bankData) setBanks(bankData);
+    if (partyData) setParties(partyData);
+    if (invData) setInventoryItems(invData);
+    if (scrapData) setScrapInventory(scrapData);
+    if (returnsData) setReturnsInventory(returnsData);
+    if (expData) setExpenses(expData);
+  };
 
-  const [scrapInventory, setScrapInventory] = useState<ScrapItem[]>([
-    { id: 1, name: 'Old Battery Scrap', qty: 5, price: 1500, date: '2026-05-04' }
-  ]);
-
-  const [returnsInventory, setReturnsInventory] = useState<ReturnItem[]>([
-    { id: 1, name: 'Faulty Cement Bag', qty: 1, type: 'Faulty', date: '2026-05-02', customer: 'Walk-in', note: 'Damaged during delivery' }
-  ]);
-
-  const [expenses, setExpenses] = useState([
-    { id: 1, desc: 'Electricity Bill', amount: 8500, date: '2026-05-01', category: 'Utility', mode: 'Bank' },
-    { id: 2, desc: 'Shop Rent', amount: 45000, date: '2026-05-01', category: 'Rent', mode: 'Bank' },
-  ]);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div className="flex h-screen bg-zinc-50 overflow-hidden font-sans">
@@ -198,14 +207,16 @@ export default function App() {
               onReturnClick={() => setShowReturnEntryModal(true)}
               logTransaction={logTransaction} 
               setScrapInventory={setScrapInventory}
+              fetchData={fetchData}
+              globalHistory={globalHistory}
             />
           )}
-          {activeTab === 'inventory' && <InventoryModule inventoryItems={inventoryItems} setInventoryItems={setInventoryItems} scrapInventory={scrapInventory} />}
-          {activeTab === 'parties' && <PartyLedgerModule parties={parties} setParties={setParties} />}
-          {activeTab === 'banks' && <BanksModule banks={banks} setBanks={setBanks} />}
+          {activeTab === 'inventory' && <InventoryModule inventoryItems={inventoryItems} fetchData={fetchData} scrapInventory={scrapInventory} />}
+          {activeTab === 'parties' && <PartyLedgerModule parties={parties} fetchData={fetchData} />}
+          {activeTab === 'banks' && <BanksModule banks={banks} fetchData={fetchData} />}
           {activeTab === 'history' && <HistoryModule history={globalHistory} />}
           {activeTab === 'returns' && <ReturnsModule returnsInventory={returnsInventory} returnsHistory={globalHistory.filter(h => h.type === 'Return')} scrapInventory={scrapInventory} />}
-          {activeTab === 'reports' && <ReportsModule parties={parties} banks={banks} inventoryItems={inventoryItems} expenses={expenses} />}
+          {activeTab === 'reports' && <ReportsModule parties={parties} banks={banks} inventoryItems={inventoryItems} expenses={expenses} globalHistory={globalHistory} />}
           {activeTab === 'settings' && <SettingsModule />}
         </div>
       </main>
@@ -278,7 +289,7 @@ function PurchaseModal({ onClose, inventoryItems, setInventoryItems, banks, part
   const [paymentMode, setPaymentMode] = useState<'cash'|'bank'>('cash');
   const [selectedBankId, setSelectedBankId] = useState<string>('');
 
-  const handleConfirmPurchase = () => {
+  const handleConfirmPurchase = async () => {
     if (!selectedProductId) return alert("Select a product to restock");
     if (qty <= 0 || rate <= 0) return alert("Enter valid quantity and rate");
     
@@ -286,17 +297,37 @@ function PurchaseModal({ onClose, inventoryItems, setInventoryItems, banks, part
     const party = parties.find((p: any) => p.id.toString() === selectedPartyId.toString());
 
     // Update Inventory
-    const updatedInventory = inventoryItems.map((item: any) => {
-      if (item.id.toString() === selectedProductId.toString()) {
-        const newStock = item.stock + qty;
-        return { ...item, stock: newStock, status: newStock > 20 ? 'optimal' : 'low' };
+    const newStock = product.stock + qty;
+    const { error: invError } = await supabase
+      .from('inventory')
+      .update({ stock: newStock, status: newStock > 20 ? 'optimal' : 'low' })
+      .eq('id', selectedProductId);
+
+    if (invError) return alert("Error updating inventory: " + invError.message);
+
+    // Update Bank Balance if mode is Bank
+    if (paymentMode === 'bank' && selectedBankId) {
+      const bank = banks.find((b: any) => b.id.toString() === selectedBankId.toString());
+      if (bank) {
+        const { error: bankError } = await supabase
+          .from('banks')
+          .update({ balance: bank.balance - (qty * rate) })
+          .eq('id', selectedBankId);
+        
+        if (bankError) console.error("Error updating bank:", bankError);
+
+        await supabase.from('bank_transactions').insert([{
+          bank_id: selectedBankId,
+          type: 'Purchase',
+          description: `Purchase: ${product?.name} x${qty}`,
+          amount: -(qty * rate),
+          date: new Date().toISOString()
+        }]);
       }
-      return item;
-    });
-    setInventoryItems(updatedInventory);
+    }
 
     // Log to global history
-    logTransaction({
+    await logTransaction({
       type: 'Purchase' as const,
       date: new Date().toISOString().split('T')[0],
       customer: party?.name || 'Direct Purchase',
@@ -306,6 +337,7 @@ function PurchaseModal({ onClose, inventoryItems, setInventoryItems, banks, part
       mode: paymentMode === 'bank' ? 'Bank' : 'Cash',
     });
 
+    fetchData(); // Refresh UI
     alert(`Successfully purchased and restocked ${qty} units!`);
     onClose();
   };
@@ -406,12 +438,11 @@ function ExpenseModal({ onClose, banks, setBanks, expenses, setExpenses, logTran
   const [paymentMode, setPaymentMode] = useState<'cash'|'bank'>('cash');
   const [selectedBankId, setSelectedBankId] = useState<string>('');
 
-  const handleConfirmExpense = () => {
+  const handleConfirmExpense = async () => {
     if (!desc || amount <= 0) return alert("Enter description and valid amount");
     if (paymentMode === 'bank' && !selectedBankId) return alert("Select a bank account");
 
     const newExpense = {
-      id: Date.now(),
       desc,
       amount,
       date: new Date().toISOString().split('T')[0],
@@ -419,25 +450,32 @@ function ExpenseModal({ onClose, banks, setBanks, expenses, setExpenses, logTran
       mode: paymentMode === 'bank' ? 'Bank' : 'Cash'
     };
 
-    setExpenses([newExpense, ...expenses]);
+    const { error: expError } = await supabase.from('expenses').insert([newExpense]);
+    if (expError) return alert("Error saving expense: " + expError.message);
 
     // Update Bank Balance if mode is Bank
-    if (paymentMode === 'bank') {
-      const updatedBanks = banks.map((b: any) => {
-        if (b.id.toString() === selectedBankId.toString()) {
-          return {
-            ...b,
-            balance: b.balance - amount,
-            transactions: [{ id: Date.now(), type: 'Expense', desc, amount: -amount, date: 'Today' }, ...b.transactions]
-          };
-        }
-        return b;
-      });
-      setBanks(updatedBanks);
+    if (paymentMode === 'bank' && selectedBankId) {
+      const bank = banks.find((b: any) => b.id.toString() === selectedBankId.toString());
+      if (bank) {
+        const { error: bankError } = await supabase
+          .from('banks')
+          .update({ balance: bank.balance - amount })
+          .eq('id', selectedBankId);
+        
+        if (bankError) console.error("Error updating bank:", bankError);
+
+        await supabase.from('bank_transactions').insert([{
+          bank_id: selectedBankId,
+          type: 'Expense',
+          description: desc,
+          amount: -amount,
+          date: new Date().toISOString()
+        }]);
+      }
     }
 
     // Log to global history
-    logTransaction({
+    await logTransaction({
       type: 'Expense' as const,
       date: new Date().toISOString().split('T')[0],
       customer: 'Business Expense',
@@ -447,6 +485,7 @@ function ExpenseModal({ onClose, banks, setBanks, expenses, setExpenses, logTran
       mode: paymentMode === 'bank' ? 'Bank' : 'Cash',
     });
 
+    fetchData(); // Refresh UI
     alert("Expense recorded successfully!");
     onClose();
   };
@@ -523,11 +562,10 @@ function ReturnsEntryModal({ onClose, inventoryItems, returnsInventory, setRetur
   const [customer, setCustomer] = useState('');
   const [note, setNote] = useState('');
 
-  const handleConfirmReturn = () => {
+  const handleConfirmReturn = async () => {
     if (!productName || !customer) return alert("Fill mandatory fields");
 
     const newReturn = {
-      id: Date.now(),
       name: productName,
       qty,
       type,
@@ -536,10 +574,11 @@ function ReturnsEntryModal({ onClose, inventoryItems, returnsInventory, setRetur
       note
     };
 
-    setReturnsInventory([newReturn, ...returnsInventory]);
+    const { error: retError } = await supabase.from('returns_inventory').insert([newReturn]);
+    if (retError) return alert("Error saving return: " + retError.message);
 
     // Log to global history
-    logTransaction({
+    await logTransaction({
       type: 'Return' as const,
       date: new Date().toISOString().split('T')[0],
       customer: customer,
@@ -549,6 +588,7 @@ function ReturnsEntryModal({ onClose, inventoryItems, returnsInventory, setRetur
       mode: 'N/A'
     });
 
+    fetchData(); // Refresh UI
     alert("Return recorded in warranty/faulty inventory");
     onClose();
   };
@@ -607,13 +647,26 @@ function ReturnsEntryModal({ onClose, inventoryItems, returnsInventory, setRetur
 // ------------------------------------------
 // 1. COMMAND CENTER
 // ------------------------------------------
-function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, onExpenseClick, onReturnClick, logTransaction, setScrapInventory }: { banks: any[], inventoryItems: any[], setActiveTab: (tab: TabType) => void, onPurchaseClick: () => void, onExpenseClick: () => void, onReturnClick: () => void, logTransaction: any, setScrapInventory: any }) {
+function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, onExpenseClick, onReturnClick, logTransaction, setScrapInventory, fetchData, globalHistory }: { banks: any[], inventoryItems: any[], setActiveTab: (tab: TabType) => void, onPurchaseClick: () => void, onExpenseClick: () => void, onReturnClick: () => void, logTransaction: any, setScrapInventory: any, fetchData: any, globalHistory: HistoryEntry[] }) {
+  const today = new Date().toISOString().split('T')[0];
+  const todaySales = globalHistory
+    .filter(h => h.type === 'Sale' && h.date === today)
+    .reduce((sum, h) => sum + h.amount, 0);
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Command Center</h2>
-          <p className="text-zinc-500 mt-1 text-sm md:text-base">Overview of today's business activity.</p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">Command Center</h2>
+            <p className="text-zinc-500 mt-1 text-sm md:text-base">Overview of today's business activity.</p>
+          </div>
+          <button 
+            onClick={fetchData}
+            className="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+            title="Refresh Data"
+          >
+            <RotateCcw size={20} />
+          </button>
         </div>
         <div className="flex gap-2 flex-wrap justify-start md:justify-end w-full md:w-auto">
           <button className="btn-primary" onClick={() => document.getElementById('sales-engine')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -647,15 +700,15 @@ function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, o
 
       {/* STATS ROW */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard title="Today's Sales" amount="Rs. 45,200" icon={<TrendingUp size={24} className="text-emerald-500" />} trend="+12.5%" />
-        <StatCard title="Cash Received" amount="Rs. 32,000" icon={<Wallet size={24} className="text-blue-500" />} />
-        <StatCard title="Pending Payments" amount="Rs. 18,500" icon={<CreditCard size={24} className="text-rose-500" />} />
-        <StatCard title="Items Sold" amount="124" icon={<ShoppingCart size={24} className="text-indigo-500" />} />
+        <StatCard title="Today's Sales" amount={`Rs. ${todaySales.toLocaleString()}`} icon={<TrendingUp size={24} className="text-emerald-500" />} trend="+12.5%" />
+        <StatCard title="Cash/Bank Balance" amount={`Rs. ${banks.reduce((a, b) => a + b.balance, 0).toLocaleString()}`} icon={<Wallet size={24} className="text-blue-500" />} />
+        <StatCard title="Active Parties" amount={parties.length.toString()} icon={<Users size={24} className="text-indigo-500" />} />
+        <StatCard title="Total Inventory" amount={inventoryItems.reduce((a, i) => a + i.stock, 0).toLocaleString()} icon={<PackageSearch size={24} className="text-blue-500" />} />
       </div>
 
       {/* SALES ENGINE - FULL WIDTH */}
       <div id="sales-engine">
-        <SalesInvoiceEngine banks={banks} inventoryItems={inventoryItems} logTransaction={logTransaction} setScrapInventory={setScrapInventory} />
+        <SalesInvoiceEngine banks={banks} inventoryItems={inventoryItems} logTransaction={logTransaction} setScrapInventory={setScrapInventory} fetchData={fetchData} />
       </div>
 
       {/* RECENT TRANSACTIONS - BELOW */}
@@ -708,7 +761,7 @@ function StatCard({ title, amount, icon, trend }: { title: string, amount: strin
   );
 }
 
-function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInventory }: { banks: any[], inventoryItems: any[], logTransaction: any, setScrapInventory: any }) {
+function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInventory, fetchData }: { banks: any[], inventoryItems: any[], logTransaction: any, setScrapInventory: any, fetchData: any }) {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [items, setItems] = useState([{ name: '', qty: 1, rate: 0 }]);
@@ -731,30 +784,56 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
     setItems(items.filter((_, i) => i !== index));
   }
 
-  const handleConfirmSale = () => {
+  const handleConfirmSale = async () => {
     if (!customerName) return alert("Please enter Customer Name");
     if (items.some(i => !i.name || i.rate <= 0)) return alert("Please fill all item details properly.");
     setIsConfirmed(true);
+
     // Log to global history
     const totalQty = items.reduce((a, i) => a + i.qty, 0);
     const itemsDesc = items.map(i => `${i.name} x${i.qty}`).join(', ');
-    logTransaction({
+    const totalAmount = calculateTotal();
+
+    await logTransaction({
       type: 'Sale' as const,
       date: new Date().toISOString().split('T')[0],
       customer: customerName,
       items: itemsDesc + (exchangeItemName ? ` [Exch: ${exchangeItemName}]` : ''),
       qty: totalQty,
-      amount: calculateTotal(),
+      amount: totalAmount,
       mode: paymentMode === 'bank' ? 'Bank' : 'Cash',
     });
 
     // Add to Scrap Inventory if applicable
     if (exchangeItemName && exchangeValue > 0) {
-      setScrapInventory((prev: ScrapItem[]) => [
-        { id: Date.now(), name: exchangeItemName, qty: 1, price: exchangeValue, date: new Date().toISOString().split('T')[0] },
-        ...prev
-      ]);
+      await supabase.from('scrap_inventory').insert([{
+        name: exchangeItemName,
+        qty: 1,
+        price: exchangeValue,
+        date: new Date().toISOString().split('T')[0]
+      }]);
     }
+
+    // Update Bank Balance if mode is Bank
+    if (paymentMode === 'bank' && selectedBankId) {
+      const bank = banks.find((b: any) => b.id.toString() === selectedBankId.toString());
+      if (bank) {
+        await supabase
+          .from('banks')
+          .update({ balance: bank.balance + totalAmount })
+          .eq('id', selectedBankId);
+
+        await supabase.from('bank_transactions').insert([{
+          bank_id: selectedBankId,
+          type: 'Sale',
+          description: `Sale to ${customerName}`,
+          amount: totalAmount,
+          date: new Date().toISOString()
+        }]);
+      }
+    }
+
+    fetchData(); // Refresh all data from Supabase
   };
 
   const handleResetSale = () => {
@@ -767,27 +846,8 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
     setExchangeValue(0);
   }
 
-  const generatePDF = async () => {
-    if (!receiptRef.current) return;
-    try {
-      // Use toJpeg from html-to-image which is more robust with modern CSS (oklch etc)
-      const dataUrl = await toJpeg(receiptRef.current, { 
-        quality: 1.0, 
-        backgroundColor: '#ffffff',
-        pixelRatio: 2
-      });
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(dataUrl);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      
-      pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Receipt-${customerName || 'Customer'}-${Date.now()}.pdf`);
-    } catch (err) {
-      console.error("Failed to generate PDF", err);
-      alert("Receipt generation failed. This might be due to a browser restriction. Please try again or use a different browser.");
-    }
+  const handlePrint = () => {
+    window.print();
   };
 
   const shareWhatsApp = () => {
@@ -961,8 +1021,8 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
               <button onClick={handleResetSale} className="btn-primary bg-zinc-200 text-zinc-700 hover:bg-zinc-300 w-full sm:w-auto">
                 New Sale
               </button>
-              <button onClick={generatePDF} className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 w-full sm:w-auto">
-                <Download size={18} /> Generate PDF
+              <button onClick={handlePrint} className="btn-primary bg-zinc-900 hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 w-full sm:w-auto">
+                <Printer size={18} /> Generate Receipt
               </button>
               <button onClick={shareWhatsApp} className="btn-success w-full sm:w-auto">
                 <Share2 size={18} /> Send WhatsApp
@@ -982,97 +1042,72 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
         </div>
       </div>
 
-      {/* HIDDEN RECEIPT - moved to a safer 'off-screen' but still layouted position to avoid blank PDFs */}
-      <div style={{ position: 'fixed', top: 0, left: 0, zIndex: -50, pointerEvents: 'none', opacity: 0 }}>
-        <div ref={receiptRef} style={{ width:'600px', padding:'50px', background:'#fff', fontFamily:'"Inter", system-ui, sans-serif', color:'#18181b', border:'1px solid #f4f4f5', boxShadow:'0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-          {/* Header Section */}
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'50px', borderBottom:'4px solid #18181b', paddingBottom:'30px' }}>
-            <div>
-              <div style={{ fontSize:'36px', fontWeight:900, textTransform:'uppercase', letterSpacing:'4px', color:'#18181b', marginBottom:'4px' }}>Nisar Traders</div>
-              <div style={{ color:'#71717a', fontSize:'14px', fontWeight:500 }}>Premium Hardware & Construction Material</div>
-              <div style={{ color:'#71717a', fontSize:'14px' }}>Main Market, Lahore | Ph: 0300-1234567</div>
-            </div>
-            <div style={{ textAlign:'right' }}>
-              <div style={{ fontSize:'24px', fontWeight:900, color:'#2563eb', marginBottom:'4px' }}>INVOICE</div>
-              <div style={{ color:'#71717a', fontSize:'13px' }}>#{Date.now().toString().slice(-6)}</div>
-            </div>
+      {/* HIDDEN RECEIPT - Optimized for Thermal Printers */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print-only, .print-only * { visibility: visible; }
+          .print-only { position: absolute; left: 0; top: 0; display: block !important; }
+        }
+      `}</style>
+      <div className="print-only" style={{ display: 'none' }}>
+        <div ref={receiptRef} id="thermal-receipt" className="p-4" style={{ width: '80mm', margin: '0 auto', fontFamily: 'monospace', fontSize: '12px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '10px', borderBottom: '1px dashed #000', paddingBottom: '10px' }}>
+            <h2 style={{ fontSize: '18px', margin: '0', fontWeight: 'bold' }}>NISAR TRADERS</h2>
+            <p style={{ margin: '2px 0' }}>Main Market, Lahore</p>
+            <p style={{ margin: '2px 0' }}>Ph: 0300-1234567</p>
           </div>
 
-          {/* Billing Details */}
-          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'40px', gap:'40px' }}>
-            <div style={{ flex:1, padding:'20px', background:'#fbfbfb', borderRadius:'12px' }}>
-              <div style={{ fontSize:'11px', fontWeight:800, color:'#a1a1aa', textTransform:'uppercase', marginBottom:'8px', letterSpacing:'1px' }}>Billed To:</div>
-              <div style={{ fontSize:'20px', fontWeight:800, color:'#18181b', marginBottom:'4px' }}>{customerName || 'Walk-in Customer'}</div>
-              <div style={{ color:'#52525b', fontSize:'14px', display:'flex', alignItems:'center', gap:'4px' }}>{phone || 'No Contact Provided'}</div>
-            </div>
-            <div style={{ textAlign:'right', padding:'20px' }}>
-              <div style={{ fontSize:'11px', fontWeight:800, color:'#a1a1aa', textTransform:'uppercase', marginBottom:'8px', letterSpacing:'1px' }}>Invoice Details:</div>
-              <div style={{ fontSize:'15px', fontWeight:700, marginBottom:'4px' }}>Date: <span style={{ fontWeight:500 }}>{new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' })}</span></div>
-              <div style={{ fontSize:'15px', fontWeight:700 }}>Mode: <span style={{ textTransform:'uppercase', color:'#2563eb' }}>{paymentMode}</span></div>
-            </div>
+          <div style={{ marginBottom: '10px', fontSize: '11px' }}>
+            <p style={{ margin: '2px 0' }}>Date: {new Date().toLocaleDateString()}</p>
+            <p style={{ margin: '2px 0' }}>Inv: #{Date.now().toString().slice(-6)}</p>
+            <p style={{ margin: '2px 0' }}>Customer: {customerName || 'Walk-in'}</p>
+            <p style={{ margin: '2px 0' }}>Payment: {paymentMode.toUpperCase()}</p>
           </div>
 
-          {/* Table */}
-          <table style={{ width:'100%', marginBottom:'40px', borderCollapse:'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px', fontSize: '11px' }}>
             <thead>
-              <tr style={{ backgroundColor:'#18181b', color:'#ffffff' }}>
-                <th style={{ padding:'14px 20px', textAlign:'left', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', borderRadius:'8px 0 0 0' }}>Item Description</th>
-                <th style={{ padding:'14px 20px', textAlign:'center', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px' }}>Qty</th>
-                <th style={{ padding:'14px 20px', textAlign:'right', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px' }}>Rate</th>
-                <th style={{ padding:'14px 20px', textAlign:'right', fontSize:'12px', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', borderRadius:'0 8px 0 0' }}>Amount</th>
+              <tr style={{ borderBottom: '1px dashed #000' }}>
+                <th style={{ textAlign: 'left', padding: '4px 0' }}>Item</th>
+                <th style={{ textAlign: 'center', padding: '4px 0' }}>Qty</th>
+                <th style={{ textAlign: 'right', padding: '4px 0' }}>Total</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item, idx) => (item.name || item.rate > 0) && (
-                <tr key={idx} style={{ borderBottom:'1px solid #f4f4f5' }}>
-                  <td style={{ padding:'18px 20px', fontWeight:600, color:'#18181b' }}>{item.name || 'Unnamed Item'}</td>
-                  <td style={{ padding:'18px 20px', textAlign:'center', color:'#52525b' }}>{item.qty}</td>
-                  <td style={{ padding:'18px 20px', textAlign:'right', color:'#52525b' }}>Rs. {item.rate.toLocaleString()}</td>
-                  <td style={{ padding:'18px 20px', textAlign:'right', fontWeight:800, color:'#18181b' }}>Rs. {(item.qty * item.rate).toLocaleString()}</td>
+              {items.map((item, idx) => (
+                <tr key={idx}>
+                  <td style={{ padding: '4px 0' }}>{item.name}</td>
+                  <td style={{ textAlign: 'center', padding: '4px 0' }}>{item.qty}</td>
+                  <td style={{ textAlign: 'right', padding: '4px 0' }}>{(item.qty * item.rate).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          {/* Summary */}
-          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:'60px' }}>
-            <div style={{ width:'300px' }}>
-              {exchangeValue > 0 && (
-                <div style={{ padding:'16px', background:'#fff1f2', borderRadius:'12px', marginBottom:'12px', border:'1px solid #fecdd3' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', color:'#52525b', fontSize:'13px', fontWeight:500 }}>
-                    <span>Gross Subtotal</span>
-                    <span>Rs. {items.reduce((acc, item) => acc + (item.qty * item.rate), 0).toLocaleString()}</span>
-                  </div>
-                  <div style={{ display:'flex', justifyContent:'space-between', padding:'4px 0', color:'#e11d48', fontSize:'13px', fontWeight:700 }}>
-                    <span>Exchange Discount</span>
-                    <span>- Rs. {exchangeValue.toLocaleString()}</span>
-                  </div>
-                </div>
-              )}
-              <div style={{ display:'flex', justifyContent:'space-between', padding:'20px', background:'#18181b', borderRadius:'12px', color:'#ffffff' }}>
-                <span style={{ fontWeight:600, fontSize:'16px', textTransform:'uppercase', alignSelf:'center' }}>Total Amount</span>
-                <span style={{ fontWeight:900, fontSize:'28px' }}>Rs. {calculateTotal().toLocaleString()}</span>
-              </div>
+          {exchangeValue > 0 && (
+            <div style={{ textAlign: 'right', fontSize: '11px', marginBottom: '5px' }}>
+              <p style={{ margin: '2px 0' }}>Subtotal: {items.reduce((acc, i) => acc + (i.qty * i.rate), 0).toLocaleString()}</p>
+              <p style={{ margin: '2px 0' }}>Exchange: -{exchangeValue.toLocaleString()}</p>
             </div>
+          )}
+
+          <div style={{ borderTop: '1px dashed #000', paddingTop: '5px', textAlign: 'right', marginBottom: '15px' }}>
+            <h3 style={{ margin: '0', fontSize: '16px', fontWeight: 'bold' }}>TOTAL: Rs. {calculateTotal().toLocaleString()}</h3>
           </div>
 
-          {/* Footer */}
-          <div style={{ textAlign:'center', paddingTop:'40px', borderTop:'1px dashed #e4e4e7' }}>
-            <div style={{ fontWeight:800, color:'#18181b', fontSize:'14px', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'2px' }}>Thank you for your business!</div>
-            <div style={{ color:'#a1a1aa', fontSize:'12px', maxWidth:'400px', margin:'0 auto', lineHeight:1.5 }}>
-              This is a computer-generated receipt. Goods once sold cannot be returned or exchanged without the original receipt.
-            </div>
+          <div style={{ textAlign: 'center', fontSize: '10px' }}>
+            <p style={{ margin: '5px 0' }}>*** Thank You ***</p>
+            <p style={{ margin: '2px 0' }}>Computer Generated Receipt</p>
           </div>
         </div>
-    </div>
-  </div>
+      </div>
   );
 }
 
 // ------------------------------------------
 // 2. INVENTORY & BARCODE MODULE
 // ------------------------------------------
-function InventoryModule({ inventoryItems, setInventoryItems, scrapInventory }: { inventoryItems: any[], setInventoryItems: any, scrapInventory: ScrapItem[] }) {
+function InventoryModule({ inventoryItems, fetchData, scrapInventory }: { inventoryItems: any[], fetchData: any, scrapInventory: ScrapItem[] }) {
   const [itemName, setItemName] = useState('');
   const [barcodeValue, setBarcodeValue] = useState('');
   
@@ -1083,17 +1118,27 @@ function InventoryModule({ inventoryItems, setInventoryItems, scrapInventory }: 
     setBarcodeValue(uniqueId);
   };
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!itemName) return alert('Enter item name');
-    setInventoryItems([...inventoryItems, { id: Date.now(), name: itemName, stock: 0, sku: barcodeValue || 'N/A', price: 0, status: 'out' }]);
+    const { error } = await supabase.from('inventory').insert([{
+      name: itemName,
+      stock: 0,
+      sku: barcodeValue || 'N/A',
+      price: 0,
+      status: 'out'
+    }]);
+    if (error) return alert("Error adding item: " + error.message);
+    fetchData();
     setItemName('');
     setBarcodeValue('');
     alert('Item added to master inventory list');
   };
 
-  const handleDeleteItem = (id: number) => {
+  const handleDeleteItem = async (id: number) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      setInventoryItems(inventoryItems.filter((i: any) => i.id !== id));
+      const { error } = await supabase.from('inventory').delete().eq('id', id);
+      if (error) return alert("Error deleting item: " + error.message);
+      fetchData();
     }
   };
 
@@ -1248,38 +1293,86 @@ function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties
   const [actionNote, setActionNote] = useState('');
   const [actionMode, setActionMode] = useState<'cash'|'bank'|'credit'>('cash');
 
-  const handleAddParty = () => {
+  const handleAddParty = async () => {
     if (!newParty.name || !newParty.phone) return alert("Fill all details");
-    setParties([{ id: Date.now(), name: newParty.name, type: newParty.type, phone: newParty.phone, paid: 0, unpaid: 0, receivable: 0, transactions: [] }, ...parties]);
-    setShowAddParty(false); setNewParty({ name: '', phone: '', type: 'Client' });
+    const { error } = await supabase.from('parties').insert([{
+      name: newParty.name,
+      type: newParty.type,
+      phone: newParty.phone,
+      paid: 0,
+      unpaid: 0,
+      receivable: 0
+    }]);
+    if (error) return alert("Error adding party: " + error.message);
+    fetchData();
+    setShowAddParty(false); 
+    setNewParty({ name: '', phone: '', type: 'Client' });
   };
 
-  const handleAction = () => {
+  const [partyTransactions, setPartyTransactions] = useState<any[]>([]);
+  useEffect(() => {
+    if (expandedPartyId) {
+      supabase.from('party_transactions')
+        .select('*')
+        .eq('party_id', expandedPartyId)
+        .order('date', { ascending: false })
+        .then(({ data }) => {
+          if (data) setPartyTransactions(data);
+        });
+    }
+  }, [expandedPartyId]);
+
+  const handleAction = async () => {
     if (!actionModal || actionAmount <= 0) return alert("Enter a valid amount");
-    const updated = parties.map((p: any) => {
-      if (p.id !== actionModal.partyId) return p;
-      const txn = { id: Date.now(), type: actionModal.type, mode: actionMode, amount: actionAmount, date: new Date().toLocaleDateString(), note: actionNote || actionModal.type };
-      const t = [...p.transactions, txn];
-      switch (actionModal.type) {
-        case 'Purchase':
-          if (actionMode === 'credit') return { ...p, unpaid: p.unpaid + actionAmount, transactions: t };
-          return { ...p, paid: p.paid + actionAmount, transactions: t };
-        case 'Sale':
-          if (actionMode === 'credit') return { ...p, receivable: p.receivable + actionAmount, transactions: t };
-          return { ...p, paid: p.paid + actionAmount, transactions: t };
-        case 'Clear Payment': {
-          const pay = Math.min(actionAmount, p.unpaid);
-          return { ...p, paid: p.paid + pay, unpaid: p.unpaid - pay, transactions: t };
-        }
-        case 'Clear Receivable': {
-          const col = Math.min(actionAmount, p.receivable);
-          return { ...p, paid: p.paid + col, receivable: p.receivable - col, transactions: t };
-        }
-        default: return p;
+    const party = parties.find((p: any) => p.id === actionModal.partyId);
+    if (!party) return;
+
+    let updateData: any = {};
+    const txnData = {
+      party_id: party.id,
+      type: actionModal.type,
+      mode: actionMode,
+      amount: actionAmount,
+      date: new Date().toISOString(),
+      note: actionNote || actionModal.type
+    };
+
+    switch (actionModal.type) {
+      case 'Purchase':
+        if (actionMode === 'credit') updateData = { unpaid: (party.unpaid || 0) + actionAmount };
+        else updateData = { paid: (party.paid || 0) + actionAmount };
+        break;
+      case 'Sale':
+        if (actionMode === 'credit') updateData = { receivable: (party.receivable || 0) + actionAmount };
+        else updateData = { paid: (party.paid || 0) + actionAmount };
+        break;
+      case 'Clear Payment': {
+        const pay = Math.min(actionAmount, party.unpaid);
+        updateData = { paid: (party.paid || 0) + pay, unpaid: party.unpaid - pay };
+        break;
       }
-    });
-    setParties(updated);
-    setActionModal(null); setActionAmount(0); setActionNote(''); setActionMode('cash');
+      case 'Clear Receivable': {
+        const col = Math.min(actionAmount, party.receivable);
+        updateData = { paid: (party.paid || 0) + col, receivable: party.receivable - col };
+        break;
+      }
+    }
+
+    const { error: pError } = await supabase.from('parties').update(updateData).eq('id', party.id);
+    if (pError) return alert("Error updating party: " + pError.message);
+
+    await supabase.from('party_transactions').insert([txnData]);
+
+    fetchData();
+    setActionModal(null); 
+    setActionAmount(0); 
+    setActionNote(''); 
+    setActionMode('cash');
+    if (expandedPartyId === party.id) {
+       // Refresh local transactions
+       const { data } = await supabase.from('party_transactions').select('*').eq('party_id', party.id).order('date', { ascending: false });
+       if (data) setPartyTransactions(data);
+    }
   };
 
   const openAction = (partyId: number, type: ActionType) => {
@@ -1399,9 +1492,9 @@ function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties
             {expandedPartyId === party.id && (
               <div className="border-t border-zinc-100 bg-zinc-50 p-5">
                 <h5 className="text-xs font-bold text-zinc-500 uppercase mb-3">Transaction History</h5>
-                {party.transactions.length === 0 ? <p className="text-sm text-zinc-400">No transactions yet.</p> : (
+                {partyTransactions.length === 0 ? <p className="text-sm text-zinc-400">No transactions yet.</p> : (
                   <div className="space-y-2">
-                    {party.transactions.map((txn: any) => {
+                    {partyTransactions.map((txn: any) => {
                       const tc = colorMap[txn.type] || colorMap['Purchase'];
                       return (
                         <div key={txn.id} className="flex justify-between items-center bg-white p-3 rounded-lg border border-zinc-100">
@@ -1411,7 +1504,7 @@ function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties
                             <span className="text-sm text-zinc-700">{txn.note}</span>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="text-xs text-zinc-400">{txn.date}</span>
+                            <span className="text-xs text-zinc-400">{new Date(txn.date).toLocaleDateString()}</span>
                             <span className={`font-bold text-sm ${tc.text}`}>Rs. {txn.amount.toLocaleString()}</span>
                           </div>
                         </div>
@@ -1431,17 +1524,32 @@ function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties
 // ------------------------------------------
 // 4. BANKS & FINANCE MODULE
 // ------------------------------------------
-function BanksModule({ banks, setBanks }: { banks: any[], setBanks: any }) {
+function BanksModule({ banks, fetchData }: { banks: any[], fetchData: any }) {
   const [showAddBank, setShowAddBank] = useState(false);
   const [newBankName, setNewBankName] = useState('');
   const [expandedBankId, setExpandedBankId] = useState<number|null>(null);
 
-  const handleAddBank = () => {
+  const handleAddBank = async () => {
     if (!newBankName) return alert("Enter bank name");
-    setBanks([...banks, { id: Date.now(), name: newBankName, balance: 0, transactions: [] }]);
+    const { error } = await supabase.from('banks').insert([{ name: newBankName, balance: 0 }]);
+    if (error) return alert("Error adding bank: " + error.message);
+    fetchData();
     setShowAddBank(false);
     setNewBankName('');
   };
+
+  const [bankTransactions, setBankTransactions] = useState<any[]>([]);
+  useEffect(() => {
+    if (expandedBankId) {
+      supabase.from('bank_transactions')
+        .select('*')
+        .eq('bank_id', expandedBankId)
+        .order('date', { ascending: false })
+        .then(({ data }) => {
+          if (data) setBankTransactions(data);
+        });
+    }
+  }, [expandedBankId]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1488,15 +1596,15 @@ function BanksModule({ banks, setBanks }: { banks: any[], setBanks: any }) {
             {expandedBankId === bank.id && (
               <div className="mt-4 border-t border-zinc-100 pt-4 relative z-10 animate-in fade-in slide-in-from-top-2">
                 <h4 className="text-xs font-bold text-zinc-500 uppercase mb-3">All Transactions</h4>
-                {(!bank.transactions || bank.transactions.length === 0) ? (
+                {bankTransactions.length === 0 ? (
                   <p className="text-sm text-zinc-400">No transactions recorded yet.</p>
                 ) : (
                   <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {bank.transactions.map((txn: any) => (
+                    {bankTransactions.map((txn: any) => (
                       <div key={txn.id} className="flex justify-between items-center bg-white p-3 rounded-lg border border-zinc-100">
                         <div>
-                          <p className="text-sm font-medium text-zinc-800">{txn.desc}</p>
-                          <p className="text-[10px] text-zinc-400">{txn.date} · {txn.type}</p>
+                          <p className="text-sm font-medium text-zinc-800">{txn.description}</p>
+                          <p className="text-[10px] text-zinc-400">{new Date(txn.date).toLocaleDateString()} · {txn.type}</p>
                         </div>
                         <span className={`font-bold text-sm ${txn.amount >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
                           {txn.amount >= 0 ? '+' : ''}Rs. {Math.abs(txn.amount).toLocaleString()}
@@ -1517,7 +1625,7 @@ function BanksModule({ banks, setBanks }: { banks: any[], setBanks: any }) {
 // ------------------------------------------
 // 5. REPORTS MODULE
 // ------------------------------------------
-function ReportsModule({ parties, banks, inventoryItems, expenses }: any) {
+function ReportsModule({ parties, banks, inventoryItems, expenses, globalHistory }: any) {
   const totalInventoryValue = inventoryItems.reduce((acc: number, item: any) => acc + (item.stock * item.price), 0);
   const totalUnpaidPartyBalances = parties.reduce((acc: number, p: any) => acc + p.unpaid, 0);
   const totalBankBalances = banks.reduce((acc: number, b: any) => acc + b.balance, 0);
@@ -1576,24 +1684,25 @@ function ReportsModule({ parties, banks, inventoryItems, expenses }: any) {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
-              <tr className="hover:bg-zinc-50 transition-colors">
-                <td className="px-6 py-4 text-zinc-500">{new Date().toLocaleDateString()}</td>
-                <td className="px-6 py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">Sale</span></td>
-                <td className="px-6 py-4 font-medium text-zinc-900">Walk-in Customer - Cement Bag 50kg</td>
-                <td className="px-6 py-4 text-right font-bold text-emerald-600">+Rs. 6,000</td>
-              </tr>
-              <tr className="hover:bg-zinc-50 transition-colors">
-                <td className="px-6 py-4 text-zinc-500">Yesterday</td>
-                <td className="px-6 py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-rose-100 text-rose-700">Purchase</span></td>
-                <td className="px-6 py-4 font-medium text-zinc-900">Restock - Best Steel Mills</td>
-                <td className="px-6 py-4 text-right font-bold text-rose-500">-Rs. 150,000</td>
-              </tr>
-              <tr className="hover:bg-zinc-50 transition-colors">
-                <td className="px-6 py-4 text-zinc-500">Oct 12, 2026</td>
-                <td className="px-6 py-4"><span className="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-700">Payment</span></td>
-                <td className="px-6 py-4 font-medium text-zinc-900">Received from Iqbal Hardware (Meezan Bank)</td>
-                <td className="px-6 py-4 text-right font-bold text-blue-600">+Rs. 45,000</td>
-              </tr>
+              {globalHistory.slice(0, 10).map((entry) => (
+                <tr key={entry.id} className="hover:bg-zinc-50 transition-colors">
+                  <td className="px-6 py-4 text-zinc-500">{new Date(entry.date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                      entry.type === 'Sale' ? 'bg-emerald-100 text-emerald-700' :
+                      entry.type === 'Purchase' ? 'bg-rose-100 text-rose-700' :
+                      entry.type === 'Expense' ? 'bg-amber-100 text-amber-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {entry.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-medium text-zinc-900">{entry.customer} - {entry.items}</td>
+                  <td className={`px-6 py-4 text-right font-bold ${entry.type === 'Sale' ? 'text-emerald-600' : 'text-rose-500'}`}>
+                    {entry.type === 'Sale' ? '+' : '-'}Rs. {entry.amount.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -1657,8 +1766,29 @@ function SettingsModule() {
         <h3 className="text-lg font-bold text-rose-700 mb-4">Danger Zone</h3>
         <p className="text-sm text-zinc-500 mb-4">These actions are destructive and cannot be undone.</p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <button onClick={() => { if(confirm('Clear all sales data?')) alert('Sales data cleared (demo).'); }} className="w-full sm:w-auto px-4 py-2 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 text-sm font-semibold hover:bg-rose-100 transition-colors">Clear Sales History</button>
-          <button onClick={() => { if(confirm('Reset all data to defaults?')) alert('All data reset (demo).'); }} className="w-full sm:w-auto px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-semibold hover:bg-rose-700 transition-colors">Factory Reset</button>
+          <button onClick={async () => { 
+            if(confirm('Clear all sales data? This will empty the global history table.')) {
+              const { error } = await supabase.from('global_history').delete().neq('id', 0);
+              if (error) alert("Error: " + error.message);
+              else { alert('Sales history cleared.'); fetchData(); }
+            } 
+          }} className="w-full sm:w-auto px-4 py-2 bg-rose-50 text-rose-700 rounded-lg border border-rose-200 text-sm font-semibold hover:bg-rose-100 transition-colors">Clear Sales History</button>
+          
+          <button onClick={async () => { 
+            if(confirm('Factory Reset? This will wipe ALL tables (Inventory, Parties, Banks, History, Expenses). THIS CANNOT BE UNDONE.')) {
+              await Promise.all([
+                supabase.from('global_history').delete().neq('id', 0),
+                supabase.from('inventory').delete().neq('id', 0),
+                supabase.from('parties').delete().neq('id', 0),
+                supabase.from('banks').delete().neq('id', 0),
+                supabase.from('expenses').delete().neq('id', 0),
+                supabase.from('scrap_inventory').delete().neq('id', 0),
+                supabase.from('returns_inventory').select('*').then(({data}) => data && Promise.all(data.map(r => supabase.from('returns_inventory').delete().eq('id', r.id))))
+              ]);
+              alert('All data has been reset.');
+              fetchData();
+            } 
+          }} className="w-full sm:w-auto px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-semibold hover:bg-rose-700 transition-colors">Factory Reset</button>
         </div>
       </div>
     </div>
