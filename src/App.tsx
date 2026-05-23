@@ -1101,6 +1101,7 @@ function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInv
           </div>
         </div>
       </div>
+    </div>
   );
 }
 
