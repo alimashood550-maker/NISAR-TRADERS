@@ -28,8 +28,6 @@ import {
   Hammer,
   RotateCcw
 } from 'lucide-react';
-import { toJpeg } from 'html-to-image';
-import { jsPDF } from 'jspdf';
 import Barcode from 'react-barcode';
 
 // TYPES
@@ -200,13 +198,13 @@ export default function App() {
           {activeTab === 'dashboard' && (
             <CommandCenter 
               banks={banks} 
+              parties={parties}
               inventoryItems={inventoryItems} 
               setActiveTab={setActiveTab} 
               onPurchaseClick={() => setShowPurchaseModal(true)} 
               onExpenseClick={() => setShowExpenseModal(true)}
               onReturnClick={() => setShowReturnEntryModal(true)}
               logTransaction={logTransaction} 
-              setScrapInventory={setScrapInventory}
               fetchData={fetchData}
               globalHistory={globalHistory}
             />
@@ -217,7 +215,7 @@ export default function App() {
           {activeTab === 'history' && <HistoryModule history={globalHistory} />}
           {activeTab === 'returns' && <ReturnsModule returnsInventory={returnsInventory} returnsHistory={globalHistory.filter(h => h.type === 'Return')} scrapInventory={scrapInventory} />}
           {activeTab === 'reports' && <ReportsModule parties={parties} banks={banks} inventoryItems={inventoryItems} expenses={expenses} globalHistory={globalHistory} />}
-          {activeTab === 'settings' && <SettingsModule />}
+          {activeTab === 'settings' && <SettingsModule fetchData={fetchData} />}
         </div>
       </main>
 
@@ -226,10 +224,10 @@ export default function App() {
         <PurchaseModal 
           onClose={() => setShowPurchaseModal(false)} 
           inventoryItems={inventoryItems}
-          setInventoryItems={setInventoryItems}
           banks={banks}
           parties={parties}
           logTransaction={logTransaction}
+          fetchData={fetchData}
         />
       )}
       {/* EXPENSE MODAL */}
@@ -237,10 +235,8 @@ export default function App() {
         <ExpenseModal 
           onClose={() => setShowExpenseModal(false)} 
           banks={banks}
-          setBanks={setBanks}
-          expenses={expenses}
-          setExpenses={setExpenses}
           logTransaction={logTransaction}
+          fetchData={fetchData}
         />
       )}
 
@@ -249,9 +245,8 @@ export default function App() {
         <ReturnsEntryModal 
           onClose={() => setShowReturnEntryModal(false)} 
           inventoryItems={inventoryItems}
-          returnsInventory={returnsInventory}
-          setReturnsInventory={setReturnsInventory}
           logTransaction={logTransaction}
+          fetchData={fetchData}
         />
       )}
     </div>
@@ -281,7 +276,7 @@ function SidebarItem({ icon, label, active, onClick }: { icon: React.ReactNode, 
 // ------------------------------------------
 // PURCHASE MODAL
 // ------------------------------------------
-function PurchaseModal({ onClose, inventoryItems, setInventoryItems, banks, parties, logTransaction }: any) {
+function PurchaseModal({ onClose, inventoryItems, banks, parties, logTransaction, fetchData }: any) {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [qty, setQty] = useState<number>(1);
   const [rate, setRate] = useState<number>(0);
@@ -431,7 +426,7 @@ function PurchaseModal({ onClose, inventoryItems, setInventoryItems, banks, part
 // ------------------------------------------
 // EXPENSE MODAL
 // ------------------------------------------
-function ExpenseModal({ onClose, banks, setBanks, expenses, setExpenses, logTransaction }: any) {
+function ExpenseModal({ onClose, banks, logTransaction, fetchData }: any) {
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState<number>(0);
   const [category, setCategory] = useState('Utility');
@@ -555,7 +550,7 @@ function ExpenseModal({ onClose, banks, setBanks, expenses, setExpenses, logTran
 // ------------------------------------------
 // RETURNS ENTRY MODAL
 // ------------------------------------------
-function ReturnsEntryModal({ onClose, inventoryItems, returnsInventory, setReturnsInventory, logTransaction }: any) {
+function ReturnsEntryModal({ onClose, inventoryItems, logTransaction, fetchData }: any) {
   const [productName, setProductName] = useState('');
   const [qty, setQty] = useState(1);
   const [type, setType] = useState<'Faulty'|'Warranty'>('Faulty');
@@ -647,7 +642,7 @@ function ReturnsEntryModal({ onClose, inventoryItems, returnsInventory, setRetur
 // ------------------------------------------
 // 1. COMMAND CENTER
 // ------------------------------------------
-function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, onExpenseClick, onReturnClick, logTransaction, setScrapInventory, fetchData, globalHistory }: { banks: any[], inventoryItems: any[], setActiveTab: (tab: TabType) => void, onPurchaseClick: () => void, onExpenseClick: () => void, onReturnClick: () => void, logTransaction: any, setScrapInventory: any, fetchData: any, globalHistory: HistoryEntry[] }) {
+function CommandCenter({ banks, parties, inventoryItems, setActiveTab, onPurchaseClick, onExpenseClick, onReturnClick, logTransaction, fetchData, globalHistory }: { banks: any[], parties: any[], inventoryItems: any[], setActiveTab: (tab: TabType) => void, onPurchaseClick: () => void, onExpenseClick: () => void, onReturnClick: () => void, logTransaction: any, fetchData: any, globalHistory: HistoryEntry[] }) {
   const today = new Date().toISOString().split('T')[0];
   const todaySales = globalHistory
     .filter(h => h.type === 'Sale' && h.date === today)
@@ -708,7 +703,7 @@ function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, o
 
       {/* SALES ENGINE - FULL WIDTH */}
       <div id="sales-engine">
-        <SalesInvoiceEngine banks={banks} inventoryItems={inventoryItems} logTransaction={logTransaction} setScrapInventory={setScrapInventory} fetchData={fetchData} />
+        <SalesInvoiceEngine banks={banks} inventoryItems={inventoryItems} logTransaction={logTransaction} fetchData={fetchData} />
       </div>
 
       {/* RECENT TRANSACTIONS - BELOW */}
@@ -737,10 +732,10 @@ function CommandCenter({ banks, inventoryItems, setActiveTab, onPurchaseClick, o
   );
 }
 
-function QuickNavBtn({ icon, label, onClick, colorClass }: { icon: React.ReactNode, label: string, onClick: () => void, colorClass: string }) {
+function QuickNavBtn({ icon, label, onClick, colorClass }: { icon: React.ReactElement<any>, label: string, onClick: () => void, colorClass: string }) {
   return (
     <button onClick={onClick} className={`flex flex-col items-center justify-center p-3 md:p-4 rounded-xl border transition-all gap-1.5 md:gap-2 ${colorClass}`}>
-      {React.cloneElement(icon as React.ReactElement, { size: 18 })}
+      {React.cloneElement(icon, { size: 18 })}
       <span className="text-[11px] md:text-sm font-bold">{label}</span>
     </button>
   );
@@ -761,7 +756,7 @@ function StatCard({ title, amount, icon, trend }: { title: string, amount: strin
   );
 }
 
-function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, setScrapInventory, fetchData }: { banks: any[], inventoryItems: any[], logTransaction: any, setScrapInventory: any, fetchData: any }) {
+function SalesInvoiceEngine({ banks, inventoryItems, logTransaction, fetchData }: { banks: any[], inventoryItems: any[], logTransaction: any, fetchData: any }) {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [items, setItems] = useState([{ name: '', qty: 1, rate: 0 }]);
@@ -1285,7 +1280,7 @@ function InventoryModule({ inventoryItems, fetchData, scrapInventory }: { invent
 // 3. PARTY LEDGER
 // ------------------------------------------
 type ActionType = 'Purchase'|'Sale'|'Clear Payment'|'Clear Receivable';
-function PartyLedgerModule({ parties, setParties }: { parties: any[], setParties: any }) {
+function PartyLedgerModule({ parties, fetchData }: { parties: any[], fetchData: () => Promise<void> }) {
   const [showAddParty, setShowAddParty] = useState(false);
   const [newParty, setNewParty] = useState({ name: '', phone: '', type: 'Client' });
   const [expandedPartyId, setExpandedPartyId] = useState<number|null>(null);
@@ -1685,7 +1680,7 @@ function ReportsModule({ parties, banks, inventoryItems, expenses, globalHistory
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
-              {globalHistory.slice(0, 10).map((entry) => (
+              {globalHistory.slice(0, 10).map((entry: HistoryEntry) => (
                 <tr key={entry.id} className="hover:bg-zinc-50 transition-colors">
                   <td className="px-6 py-4 text-zinc-500">{new Date(entry.date).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
@@ -1714,7 +1709,7 @@ function ReportsModule({ parties, banks, inventoryItems, expenses, globalHistory
 // ------------------------------------------
 // 6. SETTINGS MODULE
 // ------------------------------------------
-function SettingsModule() {
+function SettingsModule({ fetchData }: { fetchData: () => Promise<void> }) {
   const [businessName, setBusinessName] = useState('Nisar Traders');
   const [address, setAddress] = useState('Main Market, Lahore');
   const [phone, setPhone] = useState('0300-1234567');
@@ -1813,8 +1808,7 @@ function HistoryModule({ history }: { history: HistoryEntry[] }) {
 
   const totalSales = filtered.filter(h => h.type === 'Sale').reduce((a, h) => a + h.amount, 0);
   const totalPurchases = filtered.filter(h => h.type === 'Purchase').reduce((a, h) => a + h.amount, 0);
-  const salesCount = filtered.filter(h => h.type === 'Sale').length;
-  const purchaseCount = filtered.filter(h => h.type === 'Purchase').length;
+  // Removed unused count variables to prevent TS unused-variable warnings
 
   const clearFilters = () => { setTypeFilter('All'); setDateFrom(''); setDateTo(''); };
 
